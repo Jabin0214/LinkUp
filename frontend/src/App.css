@@ -1,7 +1,12 @@
+/* 应用根容器 */
 .App {
   text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
+/* Logo样式 */
 .App-logo {
   height: 40vmin;
   pointer-events: none;
@@ -13,6 +18,20 @@
   }
 }
 
+/* 响应式logo大小 */
+@media (max-width: 768px) {
+  .App-logo {
+    height: 30vmin;
+  }
+}
+
+@media (max-width: 480px) {
+  .App-logo {
+    height: 25vmin;
+  }
+}
+
+/* Header样式 */
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
@@ -22,6 +41,22 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
+  padding: 20px;
+}
+
+/* 响应式字体大小 */
+@media (max-width: 768px) {
+  .App-header {
+    font-size: calc(8px + 2vmin);
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .App-header {
+    font-size: calc(6px + 2vmin);
+    padding: 10px;
+  }
 }
 
 .App-link {
@@ -32,7 +67,238 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* 响应式容器 */
+.responsive-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+@media (max-width: 768px) {
+  .responsive-container {
+    padding: 0 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .responsive-container {
+    padding: 0 8px;
+  }
+}
+
+/* 页面布局样式 */
+.page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 卡片容器响应式 */
+.card-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+@media (max-width: 768px) {
+  .card-container {
+    max-width: 350px;
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-container {
+    max-width: 100%;
+    padding: 10px;
+    margin: 0 10px;
+  }
+}
+
+/* 响应式表格 */
+.responsive-table {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.responsive-table table {
+  min-width: 600px;
+}
+
+/* 响应式图片 */
+.responsive-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* 响应式视频 */
+.responsive-video {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%;
+  /* 16:9 */
+}
+
+.responsive-video iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+
+  /* 移动端字体调整 */
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.3rem;
+  }
+
+  h4 {
+    font-size: 1.1rem;
+  }
+
+  /* 移动端按钮调整 */
+  .ant-btn {
+    padding: 8px 16px;
+    height: auto;
+    min-height: 44px;
+    /* 移动端最小触摸目标 */
+  }
+
+  /* 移动端表单调整 */
+  .ant-form-item {
+    margin-bottom: 16px;
+  }
+
+  .ant-input,
+  .ant-input-password {
+    padding: 12px;
+    font-size: 16px;
+    /* 防止iOS缩放 */
+  }
+}
+
+/* 超小屏幕优化 */
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  h4 {
+    font-size: 1rem;
+  }
+
+  .ant-btn {
+    padding: 10px 16px;
+    min-height: 48px;
+  }
+
+  .ant-form-item {
+    margin-bottom: 20px;
+  }
+}
+
+/* 横屏模式优化 */
+@media (max-height: 500px) and (orientation: landscape) {
+  .page-container {
+    min-height: auto;
+  }
+
+  .card-container {
+    padding: 10px;
+  }
+}
+
+/* 高分辨率屏幕优化 */
+@media (min-width: 1400px) {
+  .responsive-container {
+    max-width: 1400px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .responsive-container {
+    max-width: 1600px;
+  }
+}
+
+/* 打印样式 */
+@media print {
+  .App {
+    background: white;
+    color: black;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* 辅助功能改进 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+  .App {
+    background: white;
+    color: black;
+  }
+
+  .ant-btn-primary {
+    background-color: #000;
+    border-color: #000;
+  }
+}
+
+/* 暗色主题支持 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-color: #ffffffd9;
+    --text-color-secondary: #ffffff73;
+    --text-color-disabled: #ffffff40;
+    --border-color: #434343;
+    --background-color: #141414;
+    --component-background: #1f1f1f;
+    --body-background: #000000;
   }
 }

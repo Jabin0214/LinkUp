@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Form, Input, message, Card } from 'antd';
+import { Button, Form, Input, message, Card, Row, Col } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, IdcardOutlined } from '@ant-design/icons';
 import { register, RegisterRequest, AuthResponse } from '../../Services/UserService';
 
@@ -12,15 +12,20 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
     const [loading, setLoading] = useState(false);
 
     const onFinish = async (values: RegisterRequest) => {
+        if (values.password !== values.confirmPassword) {
+            message.error('密码和确认密码不匹配');
+            return;
+        }
+
         setLoading(true);
         try {
             const auth = await register(values);
             localStorage.setItem('token', auth.token);
             localStorage.setItem('refreshToken', auth.refreshToken);
             onRegisterSuccess(auth);
-            message.success('Registration successful');
+            message.success('注册成功');
         } catch (err: any) {
-            message.error(err?.response?.data?.message || 'Registration failed');
+            message.error(err?.response?.data?.message || '注册失败');
         } finally {
             setLoading(false);
         }
@@ -29,110 +34,265 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
     return (
         <Card
             style={{
-                width: 450,
+                width: '100%',
+                maxWidth: '450px',
+                margin: '0 auto',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
                 borderRadius: 12,
                 backdropFilter: 'blur(10px)',
-                backgroundColor: 'rgba(255, 255, 255, 0.95)'
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                position: 'relative',
+                zIndex: 1
+            }}
+            bodyStyle={{
+                padding: '32px 24px 24px'
             }}
         >
-            <div style={{ textAlign: 'center', marginBottom: 24 }}>
-                <h2 style={{ color: '#333', marginBottom: 8 }}>Create Account</h2>
-                <p style={{ color: '#666' }}>Join us today</p>
+            <div style={{
+                textAlign: 'center',
+                marginBottom: 32,
+                padding: '0 8px'
+            }}>
+                <h2 style={{
+                    color: '#333',
+                    marginBottom: 8,
+                    fontSize: '1.75rem',
+                    fontWeight: 600
+                }}>
+                    创建账户
+                </h2>
+                <p style={{
+                    color: '#666',
+                    fontSize: '14px',
+                    margin: 0
+                }}>
+                    加入我们开始旅程
+                </p>
             </div>
 
-            <Form name="register" onFinish={onFinish} autoComplete="off" layout="vertical">
+            <Form
+                name="register"
+                onFinish={onFinish}
+                autoComplete="off"
+                layout="vertical"
+                requiredMark={false}
+                validateTrigger="onBlur"
+            >
                 <Form.Item
                     name="username"
-                    label="Username"
-                    rules={[{ required: true, message: 'Please enter username' }]}
+                    label={<span style={{ fontSize: '14px', fontWeight: 500 }}>用户名</span>}
+                    rules={[
+                        { required: true, message: '请输入用户名' },
+                        { min: 3, message: '用户名至少3个字符' },
+                        { max: 20, message: '用户名最多20个字符' }
+                    ]}
+                    style={{ marginBottom: 20 }}
                 >
                     <Input
-                        prefix={<UserOutlined />}
-                        placeholder="Username"
+                        prefix={<UserOutlined style={{ color: '#bfbfbf' }} />}
+                        placeholder="请输入用户名"
                         size="large"
+                        style={{
+                            borderRadius: 8,
+                            fontSize: '16px',
+                            padding: '12px 16px',
+                            height: '48px'
+                        }}
                     />
                 </Form.Item>
 
                 <Form.Item
                     name="email"
-                    label="Email"
-                    rules={[{ required: true, type: 'email', message: 'Please enter a valid email address' }]}
+                    label={<span style={{ fontSize: '14px', fontWeight: 500 }}>邮箱</span>}
+                    rules={[
+                        { required: true, message: '请输入邮箱' },
+                        { type: 'email', message: '请输入有效的邮箱地址' }
+                    ]}
+                    style={{ marginBottom: 20 }}
                 >
                     <Input
-                        prefix={<MailOutlined />}
-                        placeholder="Email"
+                        prefix={<MailOutlined style={{ color: '#bfbfbf' }} />}
+                        placeholder="请输入邮箱"
                         size="large"
+                        style={{
+                            borderRadius: 8,
+                            fontSize: '16px',
+                            padding: '12px 16px',
+                            height: '48px'
+                        }}
                     />
                 </Form.Item>
 
-                <Form.Item
-                    name="firstName"
-                    label="First Name"
-                    rules={[{ required: true, message: 'Please enter first name' }]}
-                >
-                    <Input
-                        prefix={<IdcardOutlined />}
-                        placeholder="First Name"
-                        size="large"
-                    />
-                </Form.Item>
-
-                <Form.Item
-                    name="lastName"
-                    label="Last Name"
-                    rules={[{ required: true, message: 'Please enter last name' }]}
-                >
-                    <Input
-                        prefix={<IdcardOutlined />}
-                        placeholder="Last Name"
-                        size="large"
-                    />
-                </Form.Item>
+                <Row gutter={12}>
+                    <Col xs={24} sm={12}>
+                        <Form.Item
+                            name="firstName"
+                            label={<span style={{ fontSize: '14px', fontWeight: 500 }}>姓</span>}
+                            rules={[
+                                { required: true, message: '请输入姓' },
+                                { max: 10, message: '姓最多10个字符' }
+                            ]}
+                            style={{ marginBottom: 20 }}
+                        >
+                            <Input
+                                prefix={<IdcardOutlined style={{ color: '#bfbfbf' }} />}
+                                placeholder="请输入姓"
+                                size="large"
+                                style={{
+                                    borderRadius: 8,
+                                    fontSize: '16px',
+                                    padding: '12px 16px',
+                                    height: '48px'
+                                }}
+                            />
+                        </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12}>
+                        <Form.Item
+                            name="lastName"
+                            label={<span style={{ fontSize: '14px', fontWeight: 500 }}>名</span>}
+                            rules={[
+                                { required: true, message: '请输入名' },
+                                { max: 10, message: '名最多10个字符' }
+                            ]}
+                            style={{ marginBottom: 20 }}
+                        >
+                            <Input
+                                prefix={<IdcardOutlined style={{ color: '#bfbfbf' }} />}
+                                placeholder="请输入名"
+                                size="large"
+                                style={{
+                                    borderRadius: 8,
+                                    fontSize: '16px',
+                                    padding: '12px 16px',
+                                    height: '48px'
+                                }}
+                            />
+                        </Form.Item>
+                    </Col>
+                </Row>
 
                 <Form.Item
                     name="password"
-                    label="Password"
-                    rules={[{ required: true, message: 'Please enter password' }]}
+                    label={<span style={{ fontSize: '14px', fontWeight: 500 }}>密码</span>}
+                    rules={[
+                        { required: true, message: '请输入密码' },
+                        { min: 6, message: '密码至少6个字符' },
+                        { max: 50, message: '密码最多50个字符' }
+                    ]}
+                    style={{ marginBottom: 20 }}
                 >
                     <Input.Password
-                        prefix={<LockOutlined />}
-                        placeholder="Password"
+                        prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
+                        placeholder="请输入密码"
                         size="large"
+                        style={{
+                            borderRadius: 8,
+                            fontSize: '16px',
+                            height: '48px'
+                        }}
                     />
                 </Form.Item>
 
                 <Form.Item
                     name="confirmPassword"
-                    label="Confirm Password"
-                    rules={[{ required: true, message: 'Please confirm password' }]}
+                    label={<span style={{ fontSize: '14px', fontWeight: 500 }}>确认密码</span>}
+                    rules={[
+                        { required: true, message: '请确认密码' },
+                        ({ getFieldValue }) => ({
+                            validator(_, value) {
+                                if (!value || getFieldValue('password') === value) {
+                                    return Promise.resolve();
+                                }
+                                return Promise.reject(new Error('两次输入的密码不一致'));
+                            },
+                        }),
+                    ]}
+                    style={{ marginBottom: 24 }}
                 >
                     <Input.Password
-                        prefix={<LockOutlined />}
-                        placeholder="Confirm Password"
+                        prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
+                        placeholder="请确认密码"
                         size="large"
+                        style={{
+                            borderRadius: 8,
+                            fontSize: '16px',
+                            height: '48px'
+                        }}
                     />
                 </Form.Item>
 
-                <Form.Item>
+                <Form.Item style={{ marginBottom: 20 }}>
                     <Button
                         type="primary"
                         htmlType="submit"
                         block
                         loading={loading}
                         size="large"
-                        style={{ height: 48, borderRadius: 8 }}
+                        style={{
+                            height: 48,
+                            borderRadius: 8,
+                            fontSize: '16px',
+                            fontWeight: 500,
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            border: 'none',
+                            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)'
+                        }}
                     >
-                        Create Account
+                        {loading ? '注册中...' : '创建账户'}
                     </Button>
                 </Form.Item>
 
                 <Form.Item style={{ textAlign: 'center', marginBottom: 0 }}>
-                    <Button type="link" onClick={onSwitchToLogin}>
-                        Already have an account? Sign in
+                    <Button
+                        type="link"
+                        onClick={onSwitchToLogin}
+                        style={{
+                            color: '#667eea',
+                            fontWeight: 500,
+                            padding: 0,
+                            height: 'auto'
+                        }}
+                    >
+                        已有账户？立即登录
                     </Button>
                 </Form.Item>
             </Form>
+
+            {/* 移动端优化样式 */}
+            <style>
+                {`
+                @media (max-width: 480px) {
+                    .ant-card-body {
+                        padding: 24px 16px 16px !important;
+                    }
+                    
+                    .ant-form-item {
+                        margin-bottom: 16px !important;
+                    }
+                    
+                    .ant-input,
+                    .ant-input-password {
+                        font-size: 16px !important;
+                    }
+                    
+                    .ant-col {
+                        margin-bottom: 0 !important;
+                    }
+                }
+                
+                @media (max-width: 360px) {
+                    .ant-card-body {
+                        padding: 20px 12px 12px !important;
+                    }
+                    
+                    .ant-row .ant-col {
+                        padding-left: 4px !important;
+                        padding-right: 4px !important;
+                    }
+                }
+            `}
+            </style>
         </Card>
     );
 };

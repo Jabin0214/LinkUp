@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
-import { Layout, Menu, Avatar, Dropdown, Space, Button, Drawer } from 'antd';
-import { UserOutlined, SettingOutlined, DashboardOutlined, AppstoreOutlined, LogoutOutlined, MenuOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Layout, Menu, Avatar, Dropdown, Space, Button } from 'antd';
+import { UserOutlined, SettingOutlined, DashboardOutlined, LogoutOutlined, MenuOutlined } from '@ant-design/icons';
+import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
 import { AuthResponse } from '../../Services/UserService';
-import UserSettingsPanel from './UserSettingsPanel';
+import UserSettingsPanel from '../../pages/UserSettingsPanel';
 import DashboardContent from './DashboardContent';
-import FeatureModule1 from './FeatureModule1';
-import FeatureModule2 from './FeatureModule2';
 
 const { Header, Sider, Content } = Layout;
 
@@ -14,84 +13,77 @@ interface DashboardLayoutProps {
     onLogout: () => void;
 }
 
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({ auth, onLogout }) => {
-    const [selectedKey, setSelectedKey] = useState('dashboard');
-    const [collapsed, setCollapsed] = useState(false);
-    const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
+// 统一的路由配置
+const ROUTE_CONFIG = {
+    dashboard: {
+        path: '/dashboard/overview',
+        icon: <DashboardOutlined />,
+        label: 'Dashboard',
+        component: <DashboardContent />
+    },
+    settings: {
+        path: '/dashboard/settings',
+        icon: <SettingOutlined />,
+        label: 'User Settings',
+        component: null
+    }
+} as const;
 
-    const menuItems = [
-        {
-            key: 'dashboard',
-            icon: <DashboardOutlined />,
-            label: '仪表板',
-        },
-        {
-            key: 'feature1',
-            icon: <AppstoreOutlined />,
-            label: '功能模块1',
-        },
-        {
-            key: 'feature2',
-            icon: <AppstoreOutlined />,
-            label: '功能模块2',
-        },
-        {
-            key: 'settings',
-            icon: <SettingOutlined />,
-            label: '用户设置',
-        },
-    ];
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ auth, onLogout }) => {
+    const [collapsed, setCollapsed] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const selectedKey = Object.entries(ROUTE_CONFIG).find(
+        ([_, config]) => location.pathname === config.path
+    )?.[0] || 'dashboard';
+
+    useEffect(() => {
+        if (location.pathname === '/dashboard' || location.pathname === '/dashboard/') {
+            navigate(ROUTE_CONFIG.dashboard.path, { replace: true });
+        }
+    }, [location.pathname, navigate]);
+
+    const menuItems = Object.entries(ROUTE_CONFIG).map(([key, config]) => ({
+        key,
+        icon: config.icon,
+        label: config.label,
+    }));
 
     const userMenuItems = [
         {
             key: 'profile',
             icon: <UserOutlined />,
-            label: '个人资料',
+            label: 'Profile',
         },
         {
             key: 'logout',
             icon: <LogoutOutlined />,
-            label: '退出登录',
+            label: 'Logout',
             onClick: onLogout,
         },
     ];
 
-    const renderContent = () => {
-        switch (selectedKey) {
-            case 'settings':
-                return <UserSettingsPanel auth={auth} />;
-            case 'dashboard':
-                return <DashboardContent />;
-            case 'feature1':
-                return <FeatureModule1 />;
-            case 'feature2':
-                return <FeatureModule2 />;
-            default:
-                return <DashboardContent />;
-        }
-    };
-
     const handleMenuClick = (key: string) => {
-        setSelectedKey(key);
-        setMobileMenuVisible(false); // 移动端点击后关闭菜单
+        const config = ROUTE_CONFIG[key as keyof typeof ROUTE_CONFIG];
+        if (config) {
+            navigate(config.path);
+            if (window.innerWidth <= 991.98) {
+                setCollapsed(true);
+            }
+        }
     };
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
-            {/* 桌面端侧边栏 */}
             <Sider
                 width={240}
                 theme="dark"
                 breakpoint="lg"
                 collapsedWidth="0"
                 collapsed={collapsed}
-                onBreakpoint={(broken) => {
-                    // 在lg断点以下自动隐藏侧边栏
-                    setCollapsed(broken);
-                }}
-                onCollapse={(collapsed) => {
-                    setCollapsed(collapsed);
-                }}
+                onBreakpoint={setCollapsed}
+                onCollapse={setCollapsed}
                 style={{
                     overflow: 'auto',
                     height: '100vh',
@@ -101,7 +93,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ auth, onLogout }) => 
                     bottom: 0,
                     zIndex: 100
                 }}
-                className="desktop-sider"
+                trigger={null}
             >
                 <div style={{
                     height: 64,
@@ -126,36 +118,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ auth, onLogout }) => 
                 />
             </Sider>
 
-            {/* 移动端抽屉菜单 */}
-            <Drawer
-                title={
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        color: '#333',
-                        fontWeight: 'bold',
-                        fontSize: '18px'
-                    }}>
-                        LinkUp
-                    </div>
-                }
-                placement="left"
-                onClose={() => setMobileMenuVisible(false)}
-                open={mobileMenuVisible}
-                bodyStyle={{ padding: 0 }}
-                width={280}
-                className="mobile-drawer"
-            >
-                <Menu
-                    mode="inline"
-                    selectedKeys={[selectedKey]}
-                    style={{ border: 'none' }}
-                    items={menuItems}
-                    onClick={({ key }) => handleMenuClick(key)}
-                />
-            </Drawer>
-
             <Layout style={{
                 marginLeft: collapsed ? 0 : 240,
                 transition: 'margin-left 0.2s'
@@ -171,115 +133,39 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ auth, onLogout }) => 
                     zIndex: 99,
                     boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
                 }}>
-                    {/* 移动端菜单按钮 */}
                     <Button
                         type="text"
                         icon={<MenuOutlined />}
-                        onClick={() => setMobileMenuVisible(true)}
+                        onClick={() => setCollapsed(!collapsed)}
                         style={{
                             fontSize: '16px',
                             width: 40,
                             height: 40
                         }}
-                        className="mobile-menu-btn"
                     />
 
-                    {/* 用户信息 */}
                     <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                         <Space style={{ cursor: 'pointer' }}>
                             <Avatar icon={<UserOutlined />} />
-                            <span className="username-text">{auth.user.username}</span>
+                            <span>{auth.user.username}</span>
                         </Space>
                     </Dropdown>
                 </Header>
 
                 <Content style={{
-                    margin: '24px 16px',
-                    padding: 24,
+                    margin: '16px 16px',
+                    padding: 20,
                     background: '#fff',
                     minHeight: 280,
                     borderRadius: '8px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
                 }}>
-                    {renderContent()}
+                    <Routes>
+                        <Route path="overview" element={<DashboardContent />} />
+                        <Route path="settings" element={<UserSettingsPanel auth={auth} />} />
+                    </Routes>
                 </Content>
             </Layout>
-
-            {/* 响应式样式 */}
-            <style>
-                {`
-                /* 桌面端样式 */
-                @media (min-width: 992px) {
-                    .mobile-menu-btn {
-                        display: none !important;
-                    }
-                    .mobile-drawer .ant-drawer-content {
-                        display: none;
-                    }
-                }
-
-                /* 移动端样式 */
-                @media (max-width: 991.98px) {
-                    .desktop-sider {
-                        display: none !important;
-                    }
-                    
-                    .ant-layout {
-                        margin-left: 0 !important;
-                    }
-                    
-                    .ant-layout-header {
-                        padding: 0 16px !important;
-                    }
-                    
-                    .ant-layout-content {
-                        margin: 16px 8px !important;
-                        padding: 16px !important;
-                    }
-                }
-
-                /* 超小屏幕优化 */
-                @media (max-width: 575.98px) {
-                    .username-text {
-                        display: none;
-                    }
-                    
-                    .ant-layout-header {
-                        padding: 0 12px !important;
-                    }
-                    
-                    .ant-layout-content {
-                        margin: 12px 4px !important;
-                        padding: 12px !important;
-                        border-radius: 6px !important;
-                    }
-                    
-                    .mobile-drawer .ant-drawer-header {
-                        padding: 16px 20px !important;
-                    }
-                }
-
-                /* 横屏模式优化 */
-                @media (max-height: 500px) and (orientation: landscape) {
-                    .ant-layout-content {
-                        margin: 8px !important;
-                        padding: 16px !important;
-                    }
-                }
-
-                /* 高分辨率屏幕优化 */
-                @media (min-width: 1400px) {
-                    .ant-layout-sider {
-                        width: 260px !important;
-                        max-width: 260px !important;
-                    }
-                    
-                    .ant-layout {
-                        margin-left: 260px !important;
-                    }
-                }
-            `}
-            </style>
         </Layout>
     );
 };

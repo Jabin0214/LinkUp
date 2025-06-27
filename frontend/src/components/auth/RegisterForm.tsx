@@ -13,7 +13,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
 
     const onFinish = async (values: RegisterRequest) => {
         if (values.password !== values.confirmPassword) {
-            message.error('密码和确认密码不匹配');
+            message.error('Password and confirm password do not match');
             return;
         }
 
@@ -23,9 +23,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
             localStorage.setItem('token', auth.token);
             localStorage.setItem('refreshToken', auth.refreshToken);
             onRegisterSuccess(auth);
-            message.success('注册成功');
+            message.success('Registration successful');
         } catch (err: any) {
-            message.error(err?.response?.data?.message || '注册失败');
+            message.error(err?.response?.data?.message || 'Registration failed');
         } finally {
             setLoading(false);
         }
@@ -44,9 +44,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
                 position: 'relative',
                 zIndex: 1
             }}
-            bodyStyle={{
-                padding: '32px 24px 24px'
-            }}
         >
             <div style={{
                 textAlign: 'center',
@@ -59,14 +56,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
                     fontSize: '1.75rem',
                     fontWeight: 600
                 }}>
-                    创建账户
+                    Create Account
                 </h2>
                 <p style={{
                     color: '#666',
                     fontSize: '14px',
                     margin: 0
                 }}>
-                    加入我们开始旅程
+                    Join us to begin your journey
                 </p>
             </div>
 
@@ -80,17 +77,17 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
             >
                 <Form.Item
                     name="username"
-                    label={<span style={{ fontSize: '14px', fontWeight: 500 }}>用户名</span>}
+                    label={<span style={{ fontSize: '14px', fontWeight: 500 }}>Username</span>}
                     rules={[
-                        { required: true, message: '请输入用户名' },
-                        { min: 3, message: '用户名至少3个字符' },
-                        { max: 20, message: '用户名最多20个字符' }
+                        { required: true, message: 'Please enter username' },
+                        { min: 3, message: 'Username must be at least 3 characters' },
+                        { max: 20, message: 'Username cannot exceed 20 characters' }
                     ]}
                     style={{ marginBottom: 20 }}
                 >
                     <Input
                         prefix={<UserOutlined style={{ color: '#bfbfbf' }} />}
-                        placeholder="请输入用户名"
+                        placeholder="Please enter username"
                         size="large"
                         style={{
                             borderRadius: 8,
@@ -103,16 +100,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
 
                 <Form.Item
                     name="email"
-                    label={<span style={{ fontSize: '14px', fontWeight: 500 }}>邮箱</span>}
+                    label={<span style={{ fontSize: '14px', fontWeight: 500 }}>Email</span>}
                     rules={[
-                        { required: true, message: '请输入邮箱' },
-                        { type: 'email', message: '请输入有效的邮箱地址' }
+                        { required: true, message: 'Please enter email' },
+                        { type: 'email', message: 'Please enter a valid email address' }
                     ]}
                     style={{ marginBottom: 20 }}
                 >
                     <Input
                         prefix={<MailOutlined style={{ color: '#bfbfbf' }} />}
-                        placeholder="请输入邮箱"
+                        placeholder="Please enter email"
                         size="large"
                         style={{
                             borderRadius: 8,
@@ -127,16 +124,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
                     <Col xs={24} sm={12}>
                         <Form.Item
                             name="firstName"
-                            label={<span style={{ fontSize: '14px', fontWeight: 500 }}>姓</span>}
+                            label={<span style={{ fontSize: '14px', fontWeight: 500 }}>First Name</span>}
                             rules={[
-                                { required: true, message: '请输入姓' },
-                                { max: 10, message: '姓最多10个字符' }
+                                { required: true, message: 'Please enter first name' },
+                                { max: 10, message: 'First name cannot exceed 10 characters' }
                             ]}
                             style={{ marginBottom: 20 }}
                         >
                             <Input
                                 prefix={<IdcardOutlined style={{ color: '#bfbfbf' }} />}
-                                placeholder="请输入姓"
+                                placeholder="Please enter first name"
                                 size="large"
                                 style={{
                                     borderRadius: 8,
@@ -150,16 +147,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
                     <Col xs={24} sm={12}>
                         <Form.Item
                             name="lastName"
-                            label={<span style={{ fontSize: '14px', fontWeight: 500 }}>名</span>}
+                            label={<span style={{ fontSize: '14px', fontWeight: 500 }}>Last Name</span>}
                             rules={[
-                                { required: true, message: '请输入名' },
-                                { max: 10, message: '名最多10个字符' }
+                                { required: true, message: 'Please enter last name' },
+                                { max: 10, message: 'Last name cannot exceed 10 characters' }
                             ]}
                             style={{ marginBottom: 20 }}
                         >
                             <Input
                                 prefix={<IdcardOutlined style={{ color: '#bfbfbf' }} />}
-                                placeholder="请输入名"
+                                placeholder="Please enter last name"
                                 size="large"
                                 style={{
                                     borderRadius: 8,
@@ -174,17 +171,17 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
 
                 <Form.Item
                     name="password"
-                    label={<span style={{ fontSize: '14px', fontWeight: 500 }}>密码</span>}
+                    label={<span style={{ fontSize: '14px', fontWeight: 500 }}>Password</span>}
                     rules={[
-                        { required: true, message: '请输入密码' },
-                        { min: 6, message: '密码至少6个字符' },
-                        { max: 50, message: '密码最多50个字符' }
+                        { required: true, message: 'Please enter password' },
+                        { min: 6, message: 'Password must be at least 6 characters' },
+                        { max: 50, message: 'Password cannot exceed 50 characters' }
                     ]}
                     style={{ marginBottom: 20 }}
                 >
                     <Input.Password
                         prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
-                        placeholder="请输入密码"
+                        placeholder="Please enter password"
                         size="large"
                         style={{
                             borderRadius: 8,
@@ -196,15 +193,15 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
 
                 <Form.Item
                     name="confirmPassword"
-                    label={<span style={{ fontSize: '14px', fontWeight: 500 }}>确认密码</span>}
+                    label={<span style={{ fontSize: '14px', fontWeight: 500 }}>Confirm Password</span>}
                     rules={[
-                        { required: true, message: '请确认密码' },
+                        { required: true, message: 'Please confirm password' },
                         ({ getFieldValue }) => ({
                             validator(_, value) {
                                 if (!value || getFieldValue('password') === value) {
                                     return Promise.resolve();
                                 }
-                                return Promise.reject(new Error('两次输入的密码不一致'));
+                                return Promise.reject(new Error('Passwords do not match'));
                             },
                         }),
                     ]}
@@ -212,7 +209,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
                 >
                     <Input.Password
                         prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
-                        placeholder="请确认密码"
+                        placeholder="Please confirm password"
                         size="large"
                         style={{
                             borderRadius: 8,
@@ -239,7 +236,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
                             boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)'
                         }}
                     >
-                        {loading ? '注册中...' : '创建账户'}
+                        {loading ? 'Registering...' : 'Create Account'}
                     </Button>
                 </Form.Item>
 
@@ -254,7 +251,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
                             height: 'auto'
                         }}
                     >
-                        已有账户？立即登录
+                        Already have an account? Sign in
                     </Button>
                 </Form.Item>
             </Form>

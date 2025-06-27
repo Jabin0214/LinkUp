@@ -25,7 +25,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onSwitchToRegiste
                 />
             </div>
 
-            {/* 背景装饰元素 */}
             <div style={{
                 position: 'absolute',
                 top: 0,

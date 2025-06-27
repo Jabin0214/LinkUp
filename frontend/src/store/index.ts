@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import authSlice from './slices/authSlice';
+import skillBoardSlice from './slices/skillBoardSlice';
 
 // 持久化配置
 const persistConfig = {
@@ -12,11 +13,21 @@ const persistConfig = {
     whitelist: ['token', 'refreshToken', 'user', 'lastUpdated']
 };
 
+// skillBoard持久化配置 
+const skillBoardPersistConfig = {
+    key: 'skillBoard',
+    version: 1,
+    storage,
+    whitelist: ['skillBoard', 'hasSkillBoard', 'lastUpdated']
+};
+
 const persistedAuthReducer = persistReducer(persistConfig, authSlice);
+const persistedSkillBoardReducer = persistReducer(skillBoardPersistConfig, skillBoardSlice);
 
 export const store = configureStore({
     reducer: {
         auth: persistedAuthReducer,
+        skillBoard: persistedSkillBoardReducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({

@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { fetchUserInfo, logout, validatePersistedData, setAuthFromStorage } from './store/slices/authSlice';
+import { resetSkillBoard } from './store/slices/skillBoardSlice';
 import 'antd/dist/reset.css';
 
 const App: React.FC = () => {
@@ -55,6 +56,7 @@ const App: React.FC = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     dispatch(logout());
+    dispatch(resetSkillBoard()); // 清理技能板状态
     navigate('/login');
   };
 

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Avatar, Dropdown, Space, Button } from 'antd';
-import { UserOutlined, SettingOutlined, DashboardOutlined, LogoutOutlined, MenuOutlined } from '@ant-design/icons';
+import { UserOutlined, SettingOutlined, DashboardOutlined, LogoutOutlined, MenuOutlined, CodeOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
 import UserSettingsPanel from '../../pages/UserSettingsPanel';
 import DashboardContent from './DashboardContent';
+import SkillBoardPage from '../../pages/SkillBoardPage';
+import SkillBoardEditPage from '../../pages/SkillBoardEditPage';
 
 const { Header, Sider, Content } = Layout;
 
@@ -19,6 +21,12 @@ const ROUTE_CONFIG = {
         icon: <DashboardOutlined />,
         label: 'Dashboard',
         component: <DashboardContent />
+    },
+    skillboard: {
+        path: '/dashboard/skillboard',
+        icon: <CodeOutlined />,
+        label: 'Skill Board',
+        component: <SkillBoardPage />
     },
     settings: {
         path: '/dashboard/settings',
@@ -164,6 +172,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onLogout }) => {
                 }}>
                     <Routes>
                         <Route path="overview" element={<DashboardContent />} />
+                        <Route path="skillboard" element={<SkillBoardPage />} />
+                        <Route path="skillboard/edit" element={<SkillBoardEditPage />} />
                         <Route path="settings" element={<UserSettingsPanel />} />
                     </Routes>
                 </Content>

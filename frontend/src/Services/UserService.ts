@@ -14,6 +14,7 @@ export interface RegisterRequest {
     confirmPassword: string;
     firstName: string;
     lastName: string;
+    university: string;
 }
 
 export interface AuthResponse {
@@ -26,7 +27,7 @@ export interface AuthResponse {
         email: string;
         firstName: string;
         lastName: string;
-        role: string;
+        university: string;
     };
 }
 

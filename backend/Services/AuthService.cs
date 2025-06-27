@@ -56,7 +56,7 @@ namespace Services
                 PasswordHash = HashPassword(request.Password),
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                Role = "User",
+                university = request.university,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true
             };
@@ -128,7 +128,7 @@ namespace Services
                 Email = user.Email,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                Role = user.Role
+                university = user.university
             };
         }
 
@@ -155,7 +155,7 @@ namespace Services
             return Task.FromResult(_refreshTokens.Remove(refreshToken));
         }
 
-        private async Task<AuthResponse> GenerateAuthResponseAsync(User user)
+        private Task<AuthResponse> GenerateAuthResponseAsync(User user)
         {
             var token = GenerateJwtToken(user);
             var refreshToken = GenerateRefreshToken();
@@ -163,7 +163,7 @@ namespace Services
 
             _refreshTokens[refreshToken] = user.Id.ToString();
 
-            return new AuthResponse
+            return Task.FromResult(new AuthResponse
             {
                 Token = token,
                 RefreshToken = refreshToken,
@@ -175,9 +175,9 @@ namespace Services
                     Email = user.Email,
                     FirstName = user.FirstName,
                     LastName = user.LastName,
-                    Role = user.Role
+                    university = user.university
                 }
-            };
+            });
         }
 
         private string GenerateJwtToken(User user)
@@ -190,7 +190,7 @@ namespace Services
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new(ClaimTypes.Name, user.Username),
                 new(ClaimTypes.Email, user.Email),
-                new(ClaimTypes.Role, user.Role)
+                new("university", user.university)
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor

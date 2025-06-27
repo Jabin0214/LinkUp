@@ -70,8 +70,8 @@ const UserSettingsPanel: React.FC<UserSettingsPanelProps> = ({ auth }) => {
                             <Descriptions.Item label="Last Name">
                                 {auth.user.lastName}
                             </Descriptions.Item>
-                            <Descriptions.Item label="Role">
-                                {auth.user.role}
+                            <Descriptions.Item label="university">
+                                {auth.user.university}
                             </Descriptions.Item>
                         </Descriptions>
                     </Card>

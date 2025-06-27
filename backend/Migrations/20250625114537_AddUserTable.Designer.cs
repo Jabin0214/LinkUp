@@ -61,7 +61,7 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Role")
+                    b.Property<string>("university")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

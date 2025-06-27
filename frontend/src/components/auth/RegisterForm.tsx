@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Button, Form, Input, message, Card, Row, Col } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined, IdcardOutlined } from '@ant-design/icons';
+import { UserOutlined, LockOutlined, MailOutlined, IdcardOutlined, BankOutlined } from '@ant-design/icons';
 import { register, RegisterRequest, AuthResponse } from '../../Services/UserService';
+import DebounceSelect from '../common/DebounceSelect';
+import { searchUniversities, University } from '../../Services/UniversityService';
 
 interface RegisterFormProps {
     onRegisterSuccess: (auth: AuthResponse) => void;
@@ -11,15 +13,25 @@ interface RegisterFormProps {
 const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitchToLogin }) => {
     const [loading, setLoading] = useState(false);
 
-    const onFinish = async (values: RegisterRequest) => {
+    const onFinish = async (values: any) => {
         if (values.password !== values.confirmPassword) {
             message.error('Password and confirm password do not match');
             return;
         }
 
+        // 处理university字段，如果是对象则取value
+        const universityValue = typeof values.university === 'object'
+            ? values.university.value
+            : values.university;
+
+        const registerData: RegisterRequest = {
+            ...values,
+            university: universityValue
+        };
+
         setLoading(true);
         try {
-            const auth = await register(values);
+            const auth = await register(registerData);
             localStorage.setItem('token', auth.token);
             localStorage.setItem('refreshToken', auth.refreshToken);
             onRegisterSuccess(auth);
@@ -168,6 +180,27 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
                         </Form.Item>
                     </Col>
                 </Row>
+
+                <Form.Item
+                    name="university"
+                    label={<span style={{ fontSize: '14px', fontWeight: 500 }}>University</span>}
+                    rules={[
+                        { required: true, message: 'Please select your university' }
+                    ]}
+                    style={{ marginBottom: 20 }}
+                >
+                    <DebounceSelect<University>
+                        placeholder="Search and select your university..."
+                        fetchOptions={searchUniversities}
+                        size="large"
+                        style={{
+                            width: '100%',
+                            borderRadius: 8,
+                        }}
+                        suffixIcon={<BankOutlined style={{ color: '#bfbfbf' }} />}
+                        debounceTimeout={300}
+                    />
+                </Form.Item>
 
                 <Form.Item
                     name="password"

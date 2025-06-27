@@ -190,7 +190,7 @@ namespace Services
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new(ClaimTypes.Name, user.Username),
                 new(ClaimTypes.Email, user.Email),
-                new("university", user.university)
+                new("university", user.university ?? string.Empty)
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor

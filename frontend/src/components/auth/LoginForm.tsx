@@ -1,28 +1,28 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button, Form, Input, message, Card } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { login, LoginRequest, AuthResponse } from '../../Services/UserService';
+import { LoginRequest } from '../../Services/UserService';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { loginUser } from '../../store/slices/authSlice';
 
 interface LoginFormProps {
-    onLoginSuccess: (auth: AuthResponse) => void;
+    onLoginSuccess: () => void;
     onSwitchToRegister: () => void;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onSwitchToRegister }) => {
-    const [loading, setLoading] = useState(false);
+    const dispatch = useAppDispatch();
+    const { loading } = useAppSelector(state => state.auth);
 
     const onFinish = async (values: LoginRequest) => {
-        setLoading(true);
         try {
-            const auth = await login(values);
-            localStorage.setItem('token', auth.token);
-            localStorage.setItem('refreshToken', auth.refreshToken);
-            onLoginSuccess(auth);
-            message.success('login successfully');
+            const result = await dispatch(loginUser(values)).unwrap();
+            localStorage.setItem('token', result.token);
+            localStorage.setItem('refreshToken', result.refreshToken);
+            onLoginSuccess();
+            message.success('Login successful! 🎉 Welcome back!');
         } catch (err: any) {
-            message.error(err?.response?.data?.message || 'login failure');
-        } finally {
-            setLoading(false);
+            message.error(err || 'Login failed');
         }
     };
 

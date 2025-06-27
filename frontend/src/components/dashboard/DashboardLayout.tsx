@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Avatar, Dropdown, Space, Button } from 'antd';
 import { UserOutlined, SettingOutlined, DashboardOutlined, LogoutOutlined, MenuOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
-import { AuthResponse } from '../../Services/UserService';
+import { useAppSelector } from '../../store/hooks';
 import UserSettingsPanel from '../../pages/UserSettingsPanel';
 import DashboardContent from './DashboardContent';
 
 const { Header, Sider, Content } = Layout;
 
 interface DashboardLayoutProps {
-    auth: AuthResponse;
     onLogout: () => void;
 }
 
@@ -29,10 +28,13 @@ const ROUTE_CONFIG = {
     }
 } as const;
 
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({ auth, onLogout }) => {
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onLogout }) => {
     const [collapsed, setCollapsed] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+
+    // 从Redux获取用户信息
+    const { user } = useAppSelector(state => state.auth);
 
     const selectedKey = Object.entries(ROUTE_CONFIG).find(
         ([_, config]) => location.pathname === config.path
@@ -147,7 +149,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ auth, onLogout }) => 
                     <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                         <Space style={{ cursor: 'pointer' }}>
                             <Avatar icon={<UserOutlined />} />
-                            <span>{auth.user.username}</span>
+                            <span>{user?.username}</span>
                         </Space>
                     </Dropdown>
                 </Header>
@@ -162,7 +164,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ auth, onLogout }) => 
                 }}>
                     <Routes>
                         <Route path="overview" element={<DashboardContent />} />
-                        <Route path="settings" element={<UserSettingsPanel auth={auth} />} />
+                        <Route path="settings" element={<UserSettingsPanel />} />
                     </Routes>
                 </Content>
             </Layout>

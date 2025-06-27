@@ -1,60 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import LoadingSpinner from './components/common/LoadingSpinner';
-import { AuthResponse, getCurrentUser } from './Services/UserService';
+import { useAppDispatch, useAppSelector } from './store/hooks';
+import { fetchUserInfo, logout, validatePersistedData, setAuthFromStorage } from './store/slices/authSlice';
 import 'antd/dist/reset.css';
 
 const App: React.FC = () => {
-  const [auth, setAuth] = useState<AuthResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { isAuthenticated, user, loading, token } = useAppSelector(state => state.auth);
 
-  // Check for existing token and fetch user info on app start
+  // 智能初始化：优先使用缓存数据，减少API请求
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const refreshToken = localStorage.getItem('refreshToken');
+    // 验证持久化数据的有效性
+    dispatch(validatePersistedData());
 
-    if (token && refreshToken) {
-      getCurrentUser(token)
-        .then(userInfo => {
-          setAuth({
-            token,
-            refreshToken,
-            expiresAt: '',
-            user: userInfo
-          });
-        })
-        .catch(() => {
-          // Token is invalid, clear storage
-          localStorage.removeItem('token');
-          localStorage.removeItem('refreshToken');
-          navigate('/login');
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+    const storedToken = localStorage.getItem('token');
+    const storedRefreshToken = localStorage.getItem('refreshToken');
+
+    if (storedToken && storedRefreshToken) {
+      // 如果Redux中没有token，从localStorage恢复
+      if (!token) {
+        dispatch(setAuthFromStorage({
+          token: storedToken,
+          refreshToken: storedRefreshToken
+        }));
+      }
+
+      // 只在没有用户数据或数据过期时才请求API
+      if (!user) {
+        console.log('🔄 No cached user data, fetching from API...');
+        dispatch(fetchUserInfo());
+      } else {
+        console.log('✅ Using cached user data, no API call needed');
+      }
     } else {
-      setLoading(false);
+      // 清理无效的认证状态
+      dispatch(logout());
     }
-  }, [navigate]);
+  }, [dispatch, token, user, navigate]);
 
-  const handleLoginSuccess = (authData: AuthResponse) => {
-    setAuth(authData);
+  const handleLoginSuccess = () => {
     navigate('/dashboard');
   };
 
-  const handleRegisterSuccess = (authData: AuthResponse) => {
-    setAuth(authData);
+  const handleRegisterSuccess = () => {
     navigate('/dashboard');
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
-    setAuth(null);
+    dispatch(logout());
     navigate('/login');
   };
 
@@ -67,7 +67,7 @@ const App: React.FC = () => {
       <Route
         path="/login"
         element={
-          !auth ? (
+          !isAuthenticated ? (
             <LoginPage onLoginSuccess={handleLoginSuccess} onSwitchToRegister={() => navigate('/register')} />
           ) : (
             <Navigate to="/dashboard" replace />
@@ -77,7 +77,7 @@ const App: React.FC = () => {
       <Route
         path="/register"
         element={
-          !auth ? (
+          !isAuthenticated ? (
             <RegisterPage onRegisterSuccess={handleRegisterSuccess} onSwitchToLogin={() => navigate('/login')} />
           ) : (
             <Navigate to="/dashboard" replace />
@@ -87,8 +87,8 @@ const App: React.FC = () => {
       <Route
         path="/dashboard/*"
         element={
-          auth ? (
-            <DashboardPage auth={auth} onLogout={handleLogout} />
+          isAuthenticated && user ? (
+            <DashboardPage onLogout={handleLogout} />
           ) : (
             <Navigate to="/login" replace />
           )
@@ -96,11 +96,11 @@ const App: React.FC = () => {
       />
       <Route
         path="/"
-        element={<Navigate to={auth ? "/dashboard" : "/login"} replace />}
+        element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />}
       />
       <Route
         path="*"
-        element={<Navigate to={auth ? "/dashboard" : "/login"} replace />}
+        element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />}
       />
     </Routes>
   );

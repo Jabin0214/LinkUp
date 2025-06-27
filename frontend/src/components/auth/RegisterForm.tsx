@@ -1,17 +1,20 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button, Form, Input, message, Card, Row, Col } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, IdcardOutlined, BankOutlined } from '@ant-design/icons';
-import { register, RegisterRequest, AuthResponse } from '../../Services/UserService';
+import { RegisterRequest } from '../../Services/UserService';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { registerUser } from '../../store/slices/authSlice';
 import DebounceSelect from '../common/DebounceSelect';
 import { searchUniversities, University } from '../../Services/UniversityService';
 
 interface RegisterFormProps {
-    onRegisterSuccess: (auth: AuthResponse) => void;
+    onRegisterSuccess: () => void;
     onSwitchToLogin: () => void;
 }
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitchToLogin }) => {
-    const [loading, setLoading] = useState(false);
+    const dispatch = useAppDispatch();
+    const { loading } = useAppSelector(state => state.auth);
 
     const onFinish = async (values: any) => {
         if (values.password !== values.confirmPassword) {
@@ -29,17 +32,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
             university: universityValue
         };
 
-        setLoading(true);
         try {
-            const auth = await register(registerData);
-            localStorage.setItem('token', auth.token);
-            localStorage.setItem('refreshToken', auth.refreshToken);
-            onRegisterSuccess(auth);
-            message.success('Registration successful');
+            const result = await dispatch(registerUser(registerData)).unwrap();
+            localStorage.setItem('token', result.token);
+            localStorage.setItem('refreshToken', result.refreshToken);
+            onRegisterSuccess();
+            message.success('Registration successful! 🎉 Welcome to LinkUp!');
         } catch (err: any) {
-            message.error(err?.response?.data?.message || 'Registration failed');
-        } finally {
-            setLoading(false);
+            message.error(err || 'Registration failed');
         }
     };
 

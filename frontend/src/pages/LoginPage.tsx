@@ -1,10 +1,9 @@
 import React from 'react';
 import LoginForm from '../components/auth/LoginForm';
-import { AuthResponse } from '../Services/UserService';
 import '../App.css';
 
 interface LoginPageProps {
-    onLoginSuccess: (auth: AuthResponse) => void;
+    onLoginSuccess: () => void;
     onSwitchToRegister: () => void;
 }
 

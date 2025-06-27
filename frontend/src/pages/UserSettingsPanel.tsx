@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 import { Card, Form, Input, Button, message, Descriptions, Row, Col } from 'antd';
 import { UserOutlined, SecurityScanOutlined } from '@ant-design/icons';
-import { AuthResponse } from '../Services/UserService';
+import { useAppSelector } from '../store/hooks';
 
-interface UserSettingsPanelProps {
-    auth: AuthResponse;
-}
-
-const UserSettingsPanel: React.FC<UserSettingsPanelProps> = ({ auth }) => {
+const UserSettingsPanel: React.FC = () => {
+    const { user } = useAppSelector(state => state.auth);
     const [passwordLoading, setPasswordLoading] = useState(false);
 
     const onPasswordChange = async (values: { currentPassword: string; newPassword: string }) => {
@@ -59,19 +56,19 @@ const UserSettingsPanel: React.FC<UserSettingsPanelProps> = ({ auth }) => {
                     >
                         <Descriptions column={1} size="middle">
                             <Descriptions.Item label="Username">
-                                {auth.user.username}
+                                {user?.username}
                             </Descriptions.Item>
                             <Descriptions.Item label="Email">
-                                {auth.user.email}
+                                {user?.email}
                             </Descriptions.Item>
                             <Descriptions.Item label="First Name">
-                                {auth.user.firstName}
+                                {user?.firstName}
                             </Descriptions.Item>
                             <Descriptions.Item label="Last Name">
-                                {auth.user.lastName}
+                                {user?.lastName}
                             </Descriptions.Item>
                             <Descriptions.Item label="university">
-                                {auth.user.university}
+                                {user?.university}
                             </Descriptions.Item>
                         </Descriptions>
                     </Card>

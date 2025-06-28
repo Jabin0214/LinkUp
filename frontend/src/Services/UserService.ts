@@ -31,6 +31,12 @@ export interface AuthResponse {
     };
 }
 
+export interface ChangePasswordRequest {
+    currentPassword: string;
+    newPassword: string;
+}
+
+
 export async function login(data: LoginRequest): Promise<AuthResponse> {
     const response = await axios.post(`${API_URL}/login`, data);
     return response.data;
@@ -39,6 +45,12 @@ export async function login(data: LoginRequest): Promise<AuthResponse> {
 export async function register(data: RegisterRequest): Promise<AuthResponse> {
     const response = await axios.post(`${API_URL}/register`, data);
     return response.data;
+}
+
+export async function changePassword(data: ChangePasswordRequest, token: string): Promise<void> {
+    await axios.post(`${API_URL}/change-password`, data, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
 }
 
 export async function getCurrentUser(token: string) {

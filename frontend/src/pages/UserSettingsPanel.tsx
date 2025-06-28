@@ -2,18 +2,33 @@ import React, { useState } from 'react';
 import { Card, Form, Input, Button, message, Descriptions, Row, Col } from 'antd';
 import { UserOutlined, SecurityScanOutlined } from '@ant-design/icons';
 import { useAppSelector } from '../store/hooks';
+import { changePassword, ChangePasswordRequest } from '../Services/UserService';
 
 const UserSettingsPanel: React.FC = () => {
-    const { user } = useAppSelector(state => state.auth);
+    const { user, token } = useAppSelector(state => state.auth);
     const [passwordLoading, setPasswordLoading] = useState(false);
+    const [form] = Form.useForm();
 
     const onPasswordChange = async (values: { currentPassword: string; newPassword: string }) => {
+        if (!token) {
+            message.error('Authentication required');
+            return;
+        }
+
         setPasswordLoading(true);
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const changePasswordData: ChangePasswordRequest = {
+                currentPassword: values.currentPassword,
+                newPassword: values.newPassword
+            };
+
+            await changePassword(changePasswordData, token);
             message.success('Password changed successfully');
+            form.resetFields(); // 清空表单
         } catch (err: any) {
-            message.error(err?.response?.data?.message || 'Password change failed');
+            // 处理不同的错误类型
+            const errorMessage = err?.response?.data?.message || 'Password change failed';
+            message.error(errorMessage);
         } finally {
             setPasswordLoading(false);
         }
@@ -87,7 +102,7 @@ const UserSettingsPanel: React.FC = () => {
                             boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
                         }}
                     >
-                        <Form layout="vertical" onFinish={onPasswordChange}>
+                        <Form form={form} layout="vertical" onFinish={onPasswordChange}>
                             <Form.Item
                                 name="currentPassword"
                                 label="Current Password"

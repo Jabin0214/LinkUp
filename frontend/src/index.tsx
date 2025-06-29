@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './store';
 import LoadingSpinner from './components/common/LoadingSpinner';
+import 'antd/dist/reset.css';
 import './index.css';
 import App from './App';
 
@@ -17,7 +18,7 @@ root.render(
     <Provider store={store}>
       <PersistGate loading={<LoadingSpinner />} persistor={persistor}>
         <BrowserRouter>
-          <App />
+    <App />
         </BrowserRouter>
       </PersistGate>
     </Provider>

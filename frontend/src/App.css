@@ -165,8 +165,6 @@
 
 /* 移动端优化 */
 @media (max-width: 768px) {
-
-  /* 移动端字体调整 */
   h1 {
     font-size: 1.8rem;
   }
@@ -183,39 +181,28 @@
     font-size: 1.1rem;
   }
 
-  /* 移动端按钮调整 */
   .ant-btn {
     padding: 8px 16px;
     height: auto;
     min-height: 44px;
-    /* 移动端最小触摸目标 */
   }
 
-  /* 移动端表单调整 */
   .ant-form-item {
     margin-bottom: 16px;
   }
-
-  .ant-input,
-  .ant-input-password {
-    padding: 12px;
-    font-size: 16px;
-    /* 防止iOS缩放 */
-  }
 }
 
-/* 超小屏幕优化 */
 @media (max-width: 480px) {
   h1 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
   }
 
   h2 {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
   }
 
   h3 {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
 
   h4 {
@@ -223,12 +210,11 @@
   }
 
   .ant-btn {
-    padding: 10px 16px;
-    min-height: 48px;
+    font-size: 14px;
   }
 
   .ant-form-item {
-    margin-bottom: 20px;
+    margin-bottom: 12px;
   }
 }
 
@@ -268,7 +254,7 @@
   }
 }
 
-/* 辅助功能改进 */
+/* 无障碍优化 */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -285,8 +271,9 @@
   }
 
   .ant-btn-primary {
-    background-color: #000;
-    border-color: #000;
+    background: black !important;
+    border-color: black !important;
+    color: white !important;
   }
 }
 

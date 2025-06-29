@@ -59,16 +59,16 @@ const UserSettingsPanel: React.FC = () => {
                 <Col xs={24} lg={12}>
                     <Card
                         title={
-                            <span>
+                        <span>
                                 <UserOutlined style={{ marginRight: 8 }} />
                                 Profile Information
-                            </span>
-                        }
-                        style={{
-                            borderRadius: 8,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-                        }}
-                    >
+                        </span>
+                    }
+                                style={{
+                                    borderRadius: 8,
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+                                }}
+                            >
                         <Descriptions column={1} size="middle">
                             <Descriptions.Item label="Username">
                                 {user?.username}
@@ -86,86 +86,86 @@ const UserSettingsPanel: React.FC = () => {
                                 {user?.university}
                             </Descriptions.Item>
                         </Descriptions>
-                    </Card>
-                </Col>
+                            </Card>
+                        </Col>
 
                 <Col xs={24} lg={12}>
                     <Card
                         title={
-                            <span>
+                        <span>
                                 <SecurityScanOutlined style={{ marginRight: 8 }} />
                                 Change Password
-                            </span>
-                        }
-                        style={{
-                            borderRadius: 8,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-                        }}
-                    >
+                        </span>
+                    }
+                                style={{
+                                    borderRadius: 8,
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+                                }}
+                            >
                         <Form form={form} layout="vertical" onFinish={onPasswordChange}>
-                            <Form.Item
-                                name="currentPassword"
+                                    <Form.Item
+                                        name="currentPassword"
                                 label="Current Password"
                                 rules={[{ required: true, message: 'Please enter current password' }]}
-                            >
+                                    >
                                 <Input.Password
                                     placeholder="Current password"
                                     size="large"
                                     style={{ borderRadius: 6 }}
                                 />
-                            </Form.Item>
-                            <Form.Item
-                                name="newPassword"
+                                    </Form.Item>
+                                    <Form.Item
+                                        name="newPassword"
                                 label="New Password"
-                                rules={[
+                                        rules={[
                                     { required: true, message: 'Please enter new password' },
                                     { min: 6, message: 'Password must be at least 6 characters' }
-                                ]}
-                            >
+                                        ]}
+                                    >
                                 <Input.Password
                                     placeholder="New password"
                                     size="large"
                                     style={{ borderRadius: 6 }}
                                 />
-                            </Form.Item>
-                            <Form.Item
-                                name="confirmPassword"
+                                    </Form.Item>
+                                    <Form.Item
+                                        name="confirmPassword"
                                 label="Confirm New Password"
-                                dependencies={['newPassword']}
-                                rules={[
+                                        dependencies={['newPassword']}
+                                        rules={[
                                     { required: true, message: 'Please confirm new password' },
-                                    ({ getFieldValue }) => ({
-                                        validator(_, value) {
-                                            if (!value || getFieldValue('newPassword') === value) {
-                                                return Promise.resolve();
-                                            }
+                                            ({ getFieldValue }) => ({
+                                                validator(_, value) {
+                                                    if (!value || getFieldValue('newPassword') === value) {
+                                                        return Promise.resolve();
+                                                    }
                                             return Promise.reject(new Error('Passwords do not match'));
-                                        },
-                                    }),
-                                ]}
-                            >
+                                                },
+                                            }),
+                                        ]}
+                                    >
                                 <Input.Password
                                     placeholder="Confirm new password"
                                     size="large"
                                     style={{ borderRadius: 6 }}
                                 />
-                            </Form.Item>
-                            <Form.Item>
-                                <Button
-                                    type="primary"
-                                    htmlType="submit"
-                                    loading={passwordLoading}
-                                    size="large"
-                                    style={{ borderRadius: 6 }}
-                                    block
-                                >
+                                    </Form.Item>
+                                    <Form.Item>
+                                        <Button
+                                            type="primary"
+                                            htmlType="submit"
+                                            loading={passwordLoading}
+                                            size="large"
+                                            style={{ borderRadius: 6 }}
+                                            block
+                                        >
                                     Change Password
-                                </Button>
-                            </Form.Item>
-                        </Form>
-                    </Card>
-                </Col>
-            </Row>
+                                        </Button>
+                                    </Form.Item>
+                                </Form>
+                            </Card>
+                        </Col>
+                    </Row>
         </div>
     );
 };

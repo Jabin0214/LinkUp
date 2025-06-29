@@ -7,6 +7,7 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { fetchUserInfo, logout, validatePersistedData, setAuthFromStorage } from './store/slices/authSlice';
 import { resetSkillBoard } from './store/slices/skillBoardSlice';
+import { clearProjectState } from './store/slices/projectSlice';
 import 'antd/dist/reset.css';
 
 const App: React.FC = () => {
@@ -57,6 +58,7 @@ const App: React.FC = () => {
     localStorage.removeItem('refreshToken');
     dispatch(logout());
     dispatch(resetSkillBoard()); // 清理技能板状态
+    dispatch(clearProjectState()); // 清理项目状态
     navigate('/login');
   };
 

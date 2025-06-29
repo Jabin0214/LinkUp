@@ -54,6 +54,20 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// 数据初始化
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<UserContext>();
+    try
+    {
+        Data.DataSeeder.SeedAsync(context).Wait();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"数据初始化失败: {ex.Message}");
+    }
+}
+
 // Enable CORS
 app.UseCors("AllowReactApp");
 

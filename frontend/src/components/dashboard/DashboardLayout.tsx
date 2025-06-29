@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Avatar, Dropdown, Space, Button } from 'antd';
-import { UserOutlined, SettingOutlined, DashboardOutlined, LogoutOutlined, MenuOutlined, CodeOutlined } from '@ant-design/icons';
+import { UserOutlined, SettingOutlined, DashboardOutlined, LogoutOutlined, MenuOutlined, CodeOutlined, ProjectOutlined, TeamOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
 import UserSettingsPanel from '../../pages/UserSettingsPanel';
 import DashboardContent from './DashboardContent';
 import SkillBoardPage from '../../pages/SkillBoardPage';
 import SkillBoardEditPage from '../../pages/SkillBoardEditPage';
+import ProjectsPage from '../../pages/ProjectsPage';
+import ProjectDetailPage from '../../pages/ProjectDetailPage';
+import ProjectFormPage from '../../pages/ProjectFormPage';
+import MyProjectsPage from '../../pages/MyProjectsPage';
 
 const { Header, Sider, Content } = Layout;
 
@@ -21,6 +25,18 @@ const ROUTE_CONFIG = {
         icon: <DashboardOutlined />,
         label: 'Dashboard',
         component: <DashboardContent />
+    },
+    projects: {
+        path: '/dashboard/projects',
+        icon: <ProjectOutlined />,
+        label: 'Discover Projects',
+        component: <ProjectsPage />
+    },
+    myprojects: {
+        path: '/dashboard/my-projects',
+        icon: <TeamOutlined />,
+        label: 'My Projects',
+        component: <MyProjectsPage />
     },
     skillboard: {
         path: '/dashboard/skillboard',
@@ -95,7 +111,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onLogout }) => {
                 onBreakpoint={setCollapsed}
                 onCollapse={setCollapsed}
                 style={{
-                    overflow: 'auto',
+                    overflow: 'hidden',
                     height: '100vh',
                     position: 'fixed',
                     left: 0,
@@ -172,6 +188,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onLogout }) => {
                 }}>
                     <Routes>
                         <Route path="overview" element={<DashboardContent />} />
+                        <Route path="projects" element={<ProjectsPage />} />
+                        <Route path="projects/create" element={<ProjectFormPage />} />
+                        <Route path="projects/:id" element={<ProjectDetailPage />} />
+                        <Route path="projects/:id/edit" element={<ProjectFormPage />} />
+                        <Route path="my-projects" element={<MyProjectsPage />} />
                         <Route path="skillboard" element={<SkillBoardPage />} />
                         <Route path="skillboard/edit" element={<SkillBoardEditPage />} />
                         <Route path="settings" element={<UserSettingsPanel />} />

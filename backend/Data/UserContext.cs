@@ -13,6 +13,8 @@ namespace Data
         public DbSet<Models.SkillBoard> SkillBoards { get; set; } = default!;
         public DbSet<Models.SkillItem> SkillItems { get; set; } = default!;
         public DbSet<Models.LinkItem> LinkItems { get; set; } = default!;
+        public DbSet<Models.Project> Projects { get; set; } = default!;
+        public DbSet<Models.ProjectMember> ProjectMembers { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -93,6 +95,70 @@ namespace Data
                 entity.Property(e => e.Url).IsRequired().HasMaxLength(500);
 
                 entity.HasIndex(e => new { e.SkillBoardId, e.Order });
+            });
+
+            // Project configuration
+            modelBuilder.Entity<Models.Project>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Title).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Description).IsRequired().HasMaxLength(2000);
+                entity.Property(e => e.Status).IsRequired().HasMaxLength(50).HasDefaultValue("Recruiting");
+                entity.Property(e => e.Category).HasMaxLength(100);
+                entity.Property(e => e.RequiredSkills).HasMaxLength(1000);
+                entity.Property(e => e.ContactInfo).HasMaxLength(500);
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
+
+                // Foreign key relationship with User (Creator)
+                entity.HasOne(e => e.Creator)
+                    .WithMany()
+                    .HasForeignKey(e => e.CreatorId)
+                    .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete of projects when user is deleted
+
+                // One-to-many relationship with ProjectMembers
+                entity.HasMany(e => e.Members)
+                    .WithOne(e => e.Project)
+                    .HasForeignKey(e => e.ProjectId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Indexes for performance
+                entity.HasIndex(e => e.CreatorId);
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.Category);
+                entity.HasIndex(e => e.CreatedAt);
+                entity.HasIndex(e => e.UpdatedAt);
+            });
+
+            // ProjectMember configuration
+            modelBuilder.Entity<Models.ProjectMember>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Role).IsRequired().HasMaxLength(50).HasDefaultValue("Member");
+                entity.Property(e => e.JoinMessage).HasMaxLength(500);
+                entity.Property(e => e.JoinedAt).HasDefaultValueSql("GETUTCDATE()");
+
+                // Foreign key relationships
+                entity.HasOne(e => e.Project)
+                    .WithMany(e => e.Members)
+                    .HasForeignKey(e => e.ProjectId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Composite unique constraint: one user can only join a project once
+                entity.HasIndex(e => new { e.ProjectId, e.UserId }).IsUnique();
+
+                // Indexes for performance
+                entity.HasIndex(e => e.ProjectId);
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => e.Role);
+                entity.HasIndex(e => e.JoinedAt);
             });
         }
     }

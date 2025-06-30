@@ -60,13 +60,17 @@ const ProjectDetailPage: React.FC = () => {
 
     useEffect(() => {
         if (id) {
-            fetchProject(parseInt(id));
+            const projectId = parseInt(id);
+            // 当项目ID不同或没有项目数据时请求
+            if (!project || project.id !== projectId) {
+                fetchProject(projectId);
+            }
         }
 
         return () => {
             clearCurrentProject();
         };
-    }, [id, fetchProject, clearCurrentProject]);
+    }, [id, fetchProject, clearCurrentProject, project]);
 
     const handleJoinProject = () => {
         if (!user) {

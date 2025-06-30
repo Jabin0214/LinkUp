@@ -8,7 +8,8 @@ import {
     Space,
     Statistic,
     Empty,
-    Spin
+    Spin,
+    Grid
 } from 'antd';
 import {
     ProjectOutlined,
@@ -36,9 +37,16 @@ const MyProjectsPage: React.FC = () => {
     // 使用错误处理Hook
     useProjectErrorHandler(null, error);
 
+    // 响应式断点检测
+    const { useBreakpoint } = Grid;
+    const screens = useBreakpoint();
+
     useEffect(() => {
-        fetchMyProjects();
-    }, [fetchMyProjects]);
+        // 初始化时获取我的项目数据
+        if (myProjects.length === 0 && !error) {
+            fetchMyProjects();
+        }
+    }, [fetchMyProjects, myProjects.length, error]);
 
     const handleViewDetails = (projectId: number) => {
         navigate(`/dashboard/projects/${projectId}`);
@@ -58,68 +66,135 @@ const MyProjectsPage: React.FC = () => {
         completed: myProjects.filter(p => p.status === 'Completed').length
     };
 
+    // 动态样式基于屏幕大小
+    const isMobile = !screens.md;
+    const containerPadding = isMobile ? '16px' : '24px';
+    const titleLevel = isMobile ? 3 : 2;
+    const titleMargin = isMobile ? '16px' : '24px';
+    const textSize = isMobile ? '14px' : '16px';
+    const iconMargin = isMobile ? '8px' : '12px';
+
     return (
-        <div style={{ padding: '24px', background: '#f5f5f5', minHeight: '100vh' }}>
+        <div style={{
+            paddingTop: containerPadding,
+            paddingLeft: containerPadding,
+            paddingRight: containerPadding,
+            paddingBottom: '24px',
+            minHeight: '100vh',
+            background: '#f5f5f5'
+        }}>
             {/* Header */}
-            <div style={{ marginBottom: '32px' }}>
-                <Title level={1} style={{ marginBottom: '8px' }}>
-                    <ProjectOutlined style={{ marginRight: '12px', color: '#1890ff' }} />
+            <div style={{ marginBottom: titleMargin }}>
+                <Title
+                    level={titleLevel}
+                    style={{
+                        marginBottom: '8px',
+                        color: '#262626'
+                    }}
+                >
+                    <ProjectOutlined style={{ marginRight: iconMargin, color: '#1890ff' }} />
                     My Projects
                 </Title>
-                <Text type="secondary" style={{ fontSize: '16px' }}>
+                <Text type="secondary" style={{ fontSize: textSize }}>
                     Manage your projects and track your participation
                 </Text>
             </div>
 
             {/* Statistics */}
-            <Card style={{ marginBottom: '24px' }}>
-                <Row gutter={[16, 16]}>
-                    <Col xs={24} sm={12} md={6}>
+            <Card
+                style={{
+                    marginBottom: '24px',
+                    borderRadius: isMobile ? '8px' : '12px'
+                }}
+            >
+                <Row gutter={[isMobile ? 12 : 16, isMobile ? 16 : 16]}>
+                    <Col xs={12} sm={12} md={6}>
                         <Statistic
-                            title="Total Projects"
+                            title={
+                                <span style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                                    Total Projects
+                                </span>
+                            }
                             value={stats.total}
-                            prefix={<ProjectOutlined style={{ color: '#1890ff' }} />}
+                            valueStyle={{ fontSize: isMobile ? '20px' : '24px' }}
+                            prefix={<ProjectOutlined style={{
+                                color: '#1890ff',
+                                fontSize: isMobile ? '16px' : '20px'
+                            }} />}
                         />
                     </Col>
-                    <Col xs={24} sm={12} md={6}>
+                    <Col xs={12} sm={12} md={6}>
                         <Statistic
-                            title="Projects Owned"
+                            title={
+                                <span style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                                    Projects Owned
+                                </span>
+                            }
                             value={stats.owned}
-                            prefix={<TrophyOutlined style={{ color: '#faad14' }} />}
+                            valueStyle={{ fontSize: isMobile ? '20px' : '24px' }}
+                            prefix={<TrophyOutlined style={{
+                                color: '#faad14',
+                                fontSize: isMobile ? '16px' : '20px'
+                            }} />}
                         />
                     </Col>
-                    <Col xs={24} sm={12} md={6}>
+                    <Col xs={12} sm={12} md={6}>
                         <Statistic
-                            title="Projects Joined"
+                            title={
+                                <span style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                                    Projects Joined
+                                </span>
+                            }
                             value={stats.joined}
-                            prefix={<TeamOutlined style={{ color: '#52c41a' }} />}
+                            valueStyle={{ fontSize: isMobile ? '20px' : '24px' }}
+                            prefix={<TeamOutlined style={{
+                                color: '#52c41a',
+                                fontSize: isMobile ? '16px' : '20px'
+                            }} />}
                         />
                     </Col>
-                    <Col xs={24} sm={12} md={6}>
+                    <Col xs={12} sm={12} md={6}>
                         <Statistic
-                            title="Active Projects"
+                            title={
+                                <span style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                                    Active Projects
+                                </span>
+                            }
                             value={stats.recruiting + stats.inProgress}
-                            prefix={<ClockCircleOutlined style={{ color: '#ff4d4f' }} />}
+                            valueStyle={{ fontSize: isMobile ? '20px' : '24px' }}
+                            prefix={<ClockCircleOutlined style={{
+                                color: '#ff4d4f',
+                                fontSize: isMobile ? '16px' : '20px'
+                            }} />}
                         />
                     </Col>
                 </Row>
             </Card>
 
             {/* Action Buttons */}
-            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                <Space>
+            <div style={{
+                textAlign: 'center',
+                marginBottom: '24px'
+            }}>
+                <Space
+                    direction={isMobile ? 'vertical' : 'horizontal'}
+                    size={isMobile ? 12 : 16}
+                    style={{ width: isMobile ? '100%' : 'auto' }}
+                >
                     <Button
                         type="primary"
-                        size="large"
+                        size={isMobile ? 'middle' : 'large'}
                         icon={<PlusOutlined />}
                         onClick={() => navigate('/dashboard/projects/create')}
+                        style={{ width: isMobile ? '100%' : 'auto' }}
                     >
-                        Create New Project
+                        {isMobile ? 'Create Project' : 'Create New Project'}
                     </Button>
                     <Button
-                        size="large"
+                        size={isMobile ? 'middle' : 'large'}
                         icon={<EyeOutlined />}
                         onClick={() => navigate('/dashboard/projects')}
+                        style={{ width: isMobile ? '100%' : 'auto' }}
                     >
                         Browse Projects
                     </Button>
@@ -133,28 +208,34 @@ const MyProjectsPage: React.FC = () => {
                         <Empty
                             image={Empty.PRESENTED_IMAGE_SIMPLE}
                             description={
-                                <div style={{ textAlign: 'center' }}>
-                                    <Text style={{ fontSize: '16px', color: '#666' }}>
+                                <div style={{ textAlign: 'center', padding: isMobile ? '0 16px' : '0' }}>
+                                    <Text style={{ fontSize: isMobile ? '14px' : '16px', color: '#666' }}>
                                         You haven't created or joined any projects yet
                                     </Text>
                                     <br />
-                                    <Text type="secondary">
+                                    <Text type="secondary" style={{ fontSize: isMobile ? '12px' : '14px' }}>
                                         Start by creating your first project or browse existing ones
                                     </Text>
                                 </div>
                             }
                         >
-                            <Space>
+                            <Space
+                                direction={isMobile ? 'vertical' : 'horizontal'}
+                                size={isMobile ? 8 : 16}
+                                style={{ width: isMobile ? '100%' : 'auto' }}
+                            >
                                 <Button
                                     type="primary"
                                     icon={<PlusOutlined />}
                                     onClick={() => navigate('/dashboard/projects/create')}
+                                    style={{ width: isMobile ? '100%' : 'auto' }}
                                 >
                                     Create Project
                                 </Button>
                                 <Button
                                     icon={<EyeOutlined />}
                                     onClick={() => navigate('/dashboard/projects')}
+                                    style={{ width: isMobile ? '100%' : 'auto' }}
                                 >
                                     Browse Projects
                                 </Button>
@@ -162,9 +243,17 @@ const MyProjectsPage: React.FC = () => {
                         </Empty>
                     </Card>
                 ) : (
-                    <Row gutter={[16, 16]}>
+                    <Row gutter={[isMobile ? 12 : 16, isMobile ? 12 : 16]}>
                         {myProjects.map(project => (
-                            <Col xs={24} sm={12} lg={8} xl={6} key={project.id}>
+                            <Col
+                                xs={24}
+                                sm={12}
+                                md={12}
+                                lg={8}
+                                xl={6}
+                                xxl={4}
+                                key={project.id}
+                            >
                                 <ProjectCard
                                     project={project}
                                     onViewDetails={handleViewDetails}

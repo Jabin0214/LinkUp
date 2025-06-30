@@ -175,7 +175,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                     <Text type="secondary" style={{ display: 'block', marginBottom: '8px' }}>
                         Team Members:
                     </Text>
-                    <Avatar.Group maxCount={5} maxStyle={{ color: '#f56a00', backgroundColor: '#fde3cf' }}>
+                    <Avatar.Group max={{ count: 5 , style: { color: '#f56a00', backgroundColor: '#fde3cf' } }}>
                         {project.members.map(member => (
                             <Tooltip key={member.id} title={member.username}>
                                 <Avatar

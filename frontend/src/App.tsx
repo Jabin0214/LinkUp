@@ -15,16 +15,15 @@ const App: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, loading, token } = useAppSelector(state => state.auth);
 
-  // 智能初始化：优先使用缓存数据，减少API请求
+  // 应用初始化：处理认证状态和用户数据
   useEffect(() => {
-    // 验证持久化数据的有效性
-    dispatch(validatePersistedData());
-
     const storedToken = localStorage.getItem('token');
     const storedRefreshToken = localStorage.getItem('refreshToken');
 
     if (storedToken && storedRefreshToken) {
-      // 如果Redux中没有token，从localStorage恢复
+      // 验证并恢复认证状态
+      dispatch(validatePersistedData());
+
       if (!token) {
         dispatch(setAuthFromStorage({
           token: storedToken,
@@ -32,18 +31,15 @@ const App: React.FC = () => {
         }));
       }
 
-      // 只在没有用户数据或数据过期时才请求API
+      // 获取用户信息（如果需要）
       if (!user) {
-        console.log('🔄 No cached user data, fetching from API...');
         dispatch(fetchUserInfo());
-      } else {
-        console.log('✅ Using cached user data, no API call needed');
       }
     } else {
-      // 清理无效的认证状态
+      // 清理无效状态
       dispatch(logout());
     }
-  }, [dispatch, token, user, navigate]);
+  }, [dispatch, token, user]);
 
   const handleLoginSuccess = () => {
     navigate('/dashboard');

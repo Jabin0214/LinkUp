@@ -60,24 +60,6 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
                     </div>
                 </Spin>
             </div>
-
-            {/* 移动端优化样式 */}
-            <style>
-                {`
-                @media (max-width: 768px) {
-                    .ant-spin-container {
-                        padding: 20px !important;
-                    }
-                }
-                
-                @media (max-width: 480px) {
-                    .ant-spin-container {
-                        padding: 16px !important;
-                        min-height: 60px !important;
-                    }
-                }
-            `}
-            </style>
         </div>
     );
 };

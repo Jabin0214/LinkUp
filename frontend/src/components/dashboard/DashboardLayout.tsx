@@ -3,7 +3,7 @@ import { Layout, Menu, Avatar, Dropdown, Space, Button } from 'antd';
 import { UserOutlined, SettingOutlined, DashboardOutlined, LogoutOutlined, MenuOutlined, CodeOutlined, ProjectOutlined, TeamOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
-import UserSettingsPanel from '../../pages/UserSettingsPanel';
+import UserSettingsPanel from '../user/UserSettingsPanel';
 import DashboardContent from './DashboardContent';
 import SkillBoardPage from '../../pages/SkillBoardPage';
 import SkillBoardEditPage from '../../pages/SkillBoardEditPage';
@@ -81,6 +81,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onLogout }) => {
             key: 'profile',
             icon: <UserOutlined />,
             label: 'Profile',
+            onClick: () => navigate('/dashboard/settings'),
         },
         {
             key: 'logout',

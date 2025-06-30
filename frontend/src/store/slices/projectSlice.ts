@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction, createSelector } from '@reduxjs/toolkit';
 import projectService, {
     Project,
     CreateProjectRequest,
@@ -144,6 +144,8 @@ export const joinProject = createAsyncThunk(
             await projectService.joinProject(id, joinData);
             // Refresh current project to show updated member list
             dispatch(fetchProject(id));
+            // Refresh my projects to show newly joined project
+            dispatch(fetchMyProjects());
             return id;
         } catch (error) {
             return rejectWithValue(error instanceof Error ? error.message : 'Failed to join project');
@@ -158,6 +160,8 @@ export const leaveProject = createAsyncThunk(
             await projectService.leaveProject(id);
             // Refresh current project to show updated member list
             dispatch(fetchProject(id));
+            // Refresh my projects to remove left project
+            dispatch(fetchMyProjects());
             return id;
         } catch (error) {
             return rejectWithValue(error instanceof Error ? error.message : 'Failed to leave project');
@@ -361,18 +365,30 @@ export const selectActionLoading = (state: { projects: ProjectState }) => state.
 export const selectProjectsError = (state: { projects: ProjectState }) => state.projects.error;
 export const selectActionError = (state: { projects: ProjectState }) => state.projects.actionError;
 export const selectSearchQuery = (state: { projects: ProjectState }) => state.projects.searchQuery;
-export const selectPagination = (state: { projects: ProjectState }) => ({
-    currentPage: state.projects.currentPage,
-    totalPages: state.projects.totalPages,
-    totalCount: state.projects.totalCount,
-});
+// Memoized selectors to prevent unnecessary rerenders
+const selectCurrentPage = (state: { projects: ProjectState }) => state.projects.currentPage;
+const selectTotalPages = (state: { projects: ProjectState }) => state.projects.totalPages;
+const selectTotalCount = (state: { projects: ProjectState }) => state.projects.totalCount;
+
+export const selectPagination = createSelector(
+    [selectCurrentPage, selectTotalPages, selectTotalCount],
+    (currentPage, totalPages, totalCount) => ({
+        currentPage,
+        totalPages,
+        totalCount,
+    })
+);
 
 // Smart caching selector - returns true if data is fresh (less than 5 minutes old)
-export const selectIsDataFresh = (state: { projects: ProjectState }) => {
-    const { lastFetch } = state.projects;
-    if (!lastFetch) return false;
-    const FIVE_MINUTES = 5 * 60 * 1000;
-    return Date.now() - lastFetch < FIVE_MINUTES;
-};
+const selectLastFetch = (state: { projects: ProjectState }) => state.projects.lastFetch;
+
+export const selectIsDataFresh = createSelector(
+    [selectLastFetch],
+    (lastFetch) => {
+        if (!lastFetch) return false;
+        const FIVE_MINUTES = 5 * 60 * 1000;
+        return Date.now() - lastFetch < FIVE_MINUTES;
+    }
+);
 
 export default projectSlice.reducer; 

@@ -146,6 +146,7 @@ const ProjectsPage: React.FC = () => {
     };
 
     const handleViewDetails = (projectId: number) => {
+        console.log('ProjectsPage - handleViewDetails called with ID:', projectId);
         navigate(`/dashboard/projects/${projectId}`);
     };
 

@@ -61,16 +61,20 @@ const ProjectDetailPage: React.FC = () => {
     useEffect(() => {
         if (id) {
             const projectId = parseInt(id);
-            // 当项目ID不同或没有项目数据时请求
-            if (!project || project.id !== projectId) {
-                fetchProject(projectId);
-            }
+            fetchProject(projectId);
         }
 
         return () => {
+            // 只在组件卸载时清理，不在useEffect重新执行时清理
+        };
+    }, [id, fetchProject]);
+
+    // 单独的cleanup effect，只在组件卸载时执行
+    useEffect(() => {
+        return () => {
             clearCurrentProject();
         };
-    }, [id, fetchProject, clearCurrentProject, project]);
+    }, [clearCurrentProject]);
 
     const handleJoinProject = () => {
         if (!user) {

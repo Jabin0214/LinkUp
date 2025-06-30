@@ -87,11 +87,13 @@ namespace Controllers
             if (currentUserId == null)
                 return Unauthorized();
 
+            // Get projects where user is either creator or member
             var projects = await _context.Projects
                 .Include(p => p.Creator)
                 .Include(p => p.Members)
                     .ThenInclude(m => m.User)
-                .Where(p => p.CreatorId == currentUserId)
+                .Where(p => p.CreatorId == currentUserId ||
+                           p.Members.Any(m => m.UserId == currentUserId))
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
@@ -224,7 +226,7 @@ namespace Controllers
 
         // POST: api/project/{id}/join - Join a project
         [HttpPost("{id}/join")]
-        public async Task<ActionResult> JoinProject(int id, JoinProjectRequest request)
+        public async Task<ActionResult<ProjectResponse>> JoinProject(int id, JoinProjectRequest request)
         {
             var currentUserId = GetCurrentUserId();
             if (currentUserId == null)
@@ -250,8 +252,8 @@ namespace Controllers
             if (existingMembership != null)
                 return BadRequest("You have already joined this project");
 
-            // Check if project is full (excluding creator)
-            var currentMemberCount = project.Members.Count(m => m.Role != "Creator");
+            // Check if project is full (including creator)
+            var currentMemberCount = project.Members.Count();
             if (currentMemberCount >= project.MaxMembers)
                 return BadRequest("Project has reached maximum members");
 
@@ -266,7 +268,14 @@ namespace Controllers
             _context.ProjectMembers.Add(projectMember);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Successfully joined the project" });
+            // Reload the project with updated member information
+            var updatedProject = await _context.Projects
+                .Include(p => p.Creator)
+                .Include(p => p.Members)
+                    .ThenInclude(m => m.User)
+                .FirstAsync(p => p.Id == id);
+
+            return Ok(ProjectToResponse(updatedProject, currentUserId));
         }
 
         // DELETE: api/project/{id}/leave - Leave a project
@@ -342,7 +351,8 @@ namespace Controllers
                 JoinedAt = m.JoinedAt
             }).ToList();
 
-            var currentMemberCount = members.Count(m => m.Role != "Creator");
+            // 成员数量应该包括Creator，计算所有成员
+            var currentMemberCount = members.Count();
             var hasUserJoined = currentUserId.HasValue &&
                 members.Any(m => m.UserId == currentUserId.Value);
             var isCreator = currentUserId.HasValue && project.CreatorId == currentUserId.Value;

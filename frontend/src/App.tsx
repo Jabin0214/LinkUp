@@ -5,7 +5,7 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import { useAppDispatch, useAppSelector } from './store/hooks';
-import { fetchUserInfo, logout, validatePersistedData, setAuthFromStorage } from './store/slices/authSlice';
+import { fetchUserInfo, logout, initializeAuth } from './store/slices/authSlice';
 import { resetSkillBoard } from './store/slices/skillBoardSlice';
 import { clearProjectState } from './store/slices/projectSlice';
 import 'antd/dist/reset.css';
@@ -15,29 +15,14 @@ const App: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, loading, token } = useAppSelector(state => state.auth);
 
-  // 应用初始化：处理认证状态和用户数据
+  // 应用初始化：初始化认证状态并获取用户信息
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedRefreshToken = localStorage.getItem('refreshToken');
+    // 初始化认证状态（基于redux-persist恢复的数据）
+    dispatch(initializeAuth());
 
-    if (storedToken && storedRefreshToken) {
-      // 验证并恢复认证状态
-      dispatch(validatePersistedData());
-
-      if (!token) {
-        dispatch(setAuthFromStorage({
-          token: storedToken,
-          refreshToken: storedRefreshToken
-        }));
-      }
-
-      // 获取用户信息（如果需要）
-      if (!user) {
-        dispatch(fetchUserInfo());
-      }
-    } else {
-      // 清理无效状态
-      dispatch(logout());
+    // 如果有token但没有用户信息，获取用户信息
+    if (token && !user) {
+      dispatch(fetchUserInfo());
     }
   }, [dispatch, token, user]);
 
@@ -50,6 +35,7 @@ const App: React.FC = () => {
   };
 
   const handleLogout = () => {
+    // 清理localStorage中的token（保持兼容性）
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     dispatch(logout());

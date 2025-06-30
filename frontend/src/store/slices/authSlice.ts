@@ -125,19 +125,35 @@ const authSlice = createSlice({
 
         // 从持久化存储恢复时验证数据有效性
         validatePersistedData: (state) => {
-            // 如果有token但数据过期，清除用户信息但保留token用于重新获取
+            // 如果数据过期，清除用户信息但保留token用于重新获取
             if (state.lastUpdated && (Date.now() - state.lastUpdated > CACHE_DURATION)) {
                 console.log('⚠️ Persisted user data expired, will refresh on next request');
                 state.user = null;
                 state.lastUpdated = null;
             }
+
+            // 如果有token，确保设置为已认证状态
+            if (state.token && state.refreshToken) {
+                state.isAuthenticated = true;
+                console.log('🔄 Restored authentication state from persistence');
+            }
         },
 
-        // 设置认证状态（用于从localStorage恢复）
-        setAuthFromStorage: (state, action: PayloadAction<{ token: string; refreshToken: string }>) => {
-            state.token = action.payload.token;
-            state.refreshToken = action.payload.refreshToken;
-            state.isAuthenticated = true;
+        // 初始化认证状态 - 用于应用启动时检查
+        initializeAuth: (state) => {
+            // 如果有有效的token，设置为已认证状态
+            if (state.token && state.refreshToken) {
+                state.isAuthenticated = true;
+                console.log('✅ Authentication state initialized');
+            } else {
+                // 清理无效状态
+                state.isAuthenticated = false;
+                state.user = null;
+                state.token = null;
+                state.refreshToken = null;
+                state.lastUpdated = null;
+                console.log('🧹 Cleared invalid authentication state');
+            }
         }
     },
     extraReducers: (builder) => {
@@ -220,5 +236,5 @@ const authSlice = createSlice({
     },
 });
 
-export const { clearError, logout, validatePersistedData, setAuthFromStorage } = authSlice.actions;
+export const { clearError, logout, validatePersistedData, initializeAuth } = authSlice.actions;
 export default authSlice.reducer; 

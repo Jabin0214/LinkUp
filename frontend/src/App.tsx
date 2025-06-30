@@ -8,12 +8,17 @@ import { useAppDispatch, useAppSelector } from './store/hooks';
 import { fetchUserInfo, logout, initializeAuth } from './store/slices/authSlice';
 import { resetSkillBoard } from './store/slices/skillBoardSlice';
 import { clearProjectState } from './store/slices/projectSlice';
+import { useTheme } from './hooks/useTheme';
 import 'antd/dist/reset.css';
+import './styles/themes.css';
 
 const App: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { isAuthenticated, user, loading, token } = useAppSelector(state => state.auth);
+
+  // 初始化主题系统
+  useTheme();
 
   // 应用初始化：初始化认证状态并获取用户信息
   useEffect(() => {

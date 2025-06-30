@@ -11,6 +11,7 @@ import ProjectsPage from '../../pages/ProjectsPage';
 import ProjectDetailPage from '../../pages/ProjectDetailPage';
 import ProjectFormPage from '../../pages/ProjectFormPage';
 import MyProjectsPage from '../../pages/MyProjectsPage';
+import ThemeSwitcher from '../theme/ThemeSwitcher';
 
 const { Header, Sider, Content } = Layout;
 
@@ -150,7 +151,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onLogout }) => {
                 transition: 'margin-left 0.2s'
             }}>
                 <Header style={{
-                    background: '#fff',
+                    background: 'var(--header-background)',
                     padding: '0 24px',
                     display: 'flex',
                     alignItems: 'center',
@@ -158,7 +159,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onLogout }) => {
                     position: 'sticky',
                     top: 0,
                     zIndex: 99,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+                    boxShadow: 'var(--shadow-1)',
+                    borderBottom: '1px solid var(--border-color)'
                 }}>
                     <Button
                         type="text"
@@ -167,25 +169,30 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onLogout }) => {
                         style={{
                             fontSize: '16px',
                             width: 40,
-                            height: 40
+                            height: 40,
+                            color: 'var(--text-color)'
                         }}
                     />
 
-                    <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-                        <Space style={{ cursor: 'pointer' }}>
-                            <Avatar icon={<UserOutlined />} />
-                            <span>{user?.username}</span>
-                        </Space>
-                    </Dropdown>
+                    <Space size="middle">
+                        <ThemeSwitcher size="middle" />
+                        <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+                            <Space style={{ cursor: 'pointer', color: 'var(--text-color)' }}>
+                                <Avatar icon={<UserOutlined />} />
+                                <span>{user?.username}</span>
+                            </Space>
+                        </Dropdown>
+                    </Space>
                 </Header>
 
                 <Content style={{
                     margin: '16px 16px',
                     padding: 20,
-                    background: '#fff',
+                    background: 'var(--content-background)',
                     minHeight: 280,
                     borderRadius: '8px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+                    boxShadow: 'var(--shadow-1)',
+                    color: 'var(--text-color)'
                 }}>
                     <Routes>
                         <Route path="overview" element={<DashboardContent />} />

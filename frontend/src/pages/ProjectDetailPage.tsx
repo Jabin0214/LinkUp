@@ -169,7 +169,7 @@ const ProjectDetailPage: React.FC = () => {
     const canDelete = user && project.isCreator;
 
     return (
-        <div style={{ padding: '24px', background: '#f5f5f5', minHeight: '100vh' }}>
+        <div style={{ padding: '24px', background: 'var(--body-background)', minHeight: '100vh' }}>
             {/* Header */}
             <div style={{ marginBottom: '24px' }}>
                 <Button
@@ -293,7 +293,7 @@ const ProjectDetailPage: React.FC = () => {
                                 <div key={member.id} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <Avatar
                                         size={40}
-                                        style={{ backgroundColor: member.id === project.creatorId ? '#722ed1' : '#1890ff' }}
+                                        style={{ backgroundColor: member.id === project.creatorId ? 'var(--warning-color)' : 'var(--primary-color)' }}
                                     >
                                         {member.username.charAt(0).toUpperCase()}
                                     </Avatar>

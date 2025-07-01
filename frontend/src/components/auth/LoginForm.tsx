@@ -32,12 +32,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onSwitchToRegiste
                 width: '100%',
                 maxWidth: '400px',
                 margin: '0 auto',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                boxShadow: 'var(--shadow-2)',
                 borderRadius: 12,
                 backdropFilter: 'blur(10px)',
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                backgroundColor: 'var(--component-background)',
                 position: 'relative',
-                zIndex: 1
+                zIndex: 1,
+                color: 'var(--text-color)'
             }}
         >
             <div style={{
@@ -46,7 +47,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onSwitchToRegiste
                 padding: '0 8px'
             }}>
                 <h2 style={{
-                    color: '#333',
+                    color: 'var(--text-color-secondary)',
                     marginBottom: 8,
                     fontSize: '1.75rem',
                     fontWeight: 600
@@ -54,7 +55,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onSwitchToRegiste
                     Welcome Back
                 </h2>
                 <p style={{
-                    color: '#666',
+                    color: 'var(--text-color-secondary)',
                     fontSize: '14px',
                     margin: 0
                 }}>
@@ -80,7 +81,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onSwitchToRegiste
                     style={{ marginBottom: 20 }}
                 >
                     <Input
-                        prefix={<UserOutlined style={{ color: '#bfbfbf' }} />}
+                        prefix={<UserOutlined style={{ color: 'var(--text-color-disabled)' }} />}
                         placeholder="Username"
                         size="large"
                         style={{
@@ -102,7 +103,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onSwitchToRegiste
                     style={{ marginBottom: 24 }}
                 >
                     <Input.Password
-                        prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
+                        prefix={<LockOutlined style={{ color: 'var(--text-color-disabled)' }} />}
                         placeholder="Password"
                         size="large"
                         style={{
@@ -125,9 +126,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onSwitchToRegiste
                             borderRadius: 8,
                             fontSize: '16px',
                             fontWeight: 500,
-                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            background: 'linear-gradient(135deg, var(--primary-color) 0%, var(--primary-active) 100%)',
                             border: 'none',
-                            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)'
+                            boxShadow: 'var(--shadow-2)',
+                            color: '#ffffff'
                         }}
                     >
                         {loading ? 'Loading...' : 'Login'}
@@ -139,7 +141,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onSwitchToRegiste
                         type="link"
                         onClick={onSwitchToRegister}
                         style={{
-                            color: '#667eea',
+                            color: 'var(--primary-color)',
                             fontWeight: 500,
                             padding: 0,
                             height: 'auto'

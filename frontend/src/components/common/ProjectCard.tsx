@@ -118,7 +118,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
             {/* 项目描述 */}
             <Paragraph
                 ellipsis={{ rows: 3 }}
-                style={{ color: '#666', marginBottom: '16px' }}
+                style={{ color: 'var(--text-color-secondary)', marginBottom: '16px' }}
             >
                 {project.description}
             </Paragraph>
@@ -175,11 +175,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                     <Text type="secondary" style={{ display: 'block', marginBottom: '8px' }}>
                         Team Members:
                     </Text>
-                    <Avatar.Group max={{ count: 5 , style: { color: '#f56a00', backgroundColor: '#fde3cf' } }}>
+                    <Avatar.Group max={{ count: 5, style: { color: 'var(--warning-color)', backgroundColor: 'var(--hover-background)' } }}>
                         {project.members.map(member => (
                             <Tooltip key={member.id} title={member.username}>
                                 <Avatar
-                                    style={{ backgroundColor: '#1890ff' }}
+                                    style={{ backgroundColor: 'var(--primary-color)' }}
                                 >
                                     {member.username.charAt(0).toUpperCase()}
                                 </Avatar>

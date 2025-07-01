@@ -24,6 +24,29 @@ export const useTheme = () => {
         console.log(`🎨 Applied theme to DOM: ${isDark ? 'dark' : 'light'}`);
     }, [isDark]);
 
+    // 立即初始化主题，防止闪白
+    useEffect(() => {
+        // 在React应用启动时立即应用主题
+        const storedMode = localStorage.getItem('theme-mode') || 'auto';
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        let shouldBeDark = false;
+        if (storedMode === 'dark') {
+            shouldBeDark = true;
+        } else if (storedMode === 'light') {
+            shouldBeDark = false;
+        } else { // auto
+            shouldBeDark = systemPrefersDark;
+        }
+
+        // 立即应用主题，不等Redux
+        const root = document.documentElement;
+        root.setAttribute('data-theme', shouldBeDark ? 'dark' : 'light');
+
+        // 然后初始化Redux状态
+        dispatch(initializeTheme());
+    }, [dispatch]);
+
     // 监听系统主题变化
     useEffect(() => {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -31,9 +54,6 @@ export const useTheme = () => {
         const handleSystemThemeChange = (e: MediaQueryListEvent) => {
             dispatch(updateSystemThemePreference(e.matches));
         };
-
-        // 初始化主题
-        dispatch(initializeTheme());
 
         // 监听系统主题变化
         mediaQuery.addEventListener('change', handleSystemThemeChange);

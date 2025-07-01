@@ -87,6 +87,15 @@ const UserCard: React.FC<UserCardProps> = ({ user, onSendFriendRequest, loading 
                         }}>
                             @{user.username}
                         </div>
+                        <div style={{
+                            fontWeight: 400,
+                            fontSize: '14px',
+                            color: 'var(--text-color-secondary)'
+                        }}>
+                            {user.isSchoolmate && (
+                                <Tag color="blue" style={{ fontSize: '12px' }}>Schoolmate</Tag>
+                            )}
+                        </div>
                     </div>
                 }
                 description={
@@ -100,9 +109,6 @@ const UserCard: React.FC<UserCardProps> = ({ user, onSendFriendRequest, loading 
                                 }}>
                                     {user.university}
                                 </span>
-                                {user.isSchoolmate && (
-                                    <Tag color="blue" style={{ fontSize: '12px' }}>Schoolmate</Tag>
-                                )}
                             </Space>
                         )}
                         <Space size={4}>

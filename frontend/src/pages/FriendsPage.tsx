@@ -12,7 +12,7 @@ import {
     Modal,
     Tabs
 } from 'antd';
-import { SearchOutlined, TeamOutlined, UserAddOutlined, InboxOutlined } from '@ant-design/icons';
+import { TeamOutlined, UserAddOutlined, InboxOutlined } from '@ant-design/icons';
 import { useAppSelector } from '../store/hooks';
 import {
     getFriends,
@@ -27,7 +27,6 @@ import FriendRequestCard from '../components/friend/FriendRequestCard';
 import { handleAuthError, isUserAuthenticated, getCurrentToken } from '../utils/authUtils';
 
 const { Title, Text } = Typography;
-const { Search } = Input;
 const { TabPane } = Tabs;
 const { confirm } = Modal;
 
@@ -242,7 +241,12 @@ const FriendsPage: React.FC = () => {
     }, [token, activeTab, isAuthenticated]);
 
     return (
-        <div style={{ padding: '24px', color: 'var(--text-color)' }}>
+        <div style={{
+            padding: '24px',
+            color: 'var(--text-color)',
+            backgroundColor: 'var(--body-background)',
+            minHeight: '100vh'
+        }}>
             <div style={{ marginBottom: '24px' }}>
                 <Title level={2} style={{
                     color: 'var(--text-color)',
@@ -253,7 +257,10 @@ const FriendsPage: React.FC = () => {
                     <TeamOutlined style={{ marginRight: '12px', color: 'var(--primary-color)' }} />
                     Friends
                 </Title>
-                <Text type="secondary" style={{ fontSize: '16px' }}>
+                <Text type="secondary" style={{
+                    fontSize: '16px',
+                    color: 'var(--text-color-secondary)'
+                }}>
                     Manage your connections and friend requests
                 </Text>
             </div>
@@ -262,12 +269,15 @@ const FriendsPage: React.FC = () => {
                 activeKey={activeTab}
                 onChange={handleTabChange}
                 size="large"
-                style={{ marginBottom: '24px' }}
+                style={{
+                    marginBottom: '24px',
+                    color: 'var(--text-color)'
+                }}
             >
                 <TabPane
                     tab={
-                        <span>
-                            <TeamOutlined />
+                        <span style={{ color: 'var(--text-color)' }}>
+                            <TeamOutlined style={{ color: 'var(--text-color)' }} />
                             My Friends ({friendsTotalCount})
                         </span>
                     }
@@ -281,17 +291,25 @@ const FriendsPage: React.FC = () => {
                     }}>
                         <Row gutter={[16, 16]} align="middle">
                             <Col xs={24} md={12}>
-                                <Search
+                                <Input
                                     placeholder="Search friends..."
                                     allowClear
-                                    enterButton={<SearchOutlined />}
                                     size="large"
-                                    onSearch={handleFriendsSearch}
-                                    style={{ width: '100%' }}
+                                    onPressEnter={(e) => handleFriendsSearch((e.target as HTMLInputElement).value)}
+                                    onChange={(e) => {
+                                        if (!e.target.value) {
+                                            handleFriendsSearch(''); // 当清空输入框时立即搜索
+                                        }
+                                    }}
+                                    onBlur={(e) => handleFriendsSearch(e.target.value)}
+                                    style={{
+                                        width: '100%',
+                                        color: 'var(--text-color-secondary)'
+                                    }}
                                 />
                             </Col>
                             <Col xs={24} md={12}>
-                                <Text type="secondary">
+                                <Text type="secondary" style={{ color: 'var(--text-color-secondary)' }}>
                                     {friendsTotalCount} friend{friendsTotalCount !== 1 ? 's' : ''}
                                 </Text>
                             </Col>
@@ -355,8 +373,8 @@ const FriendsPage: React.FC = () => {
 
                 <TabPane
                     tab={
-                        <span>
-                            <InboxOutlined />
+                        <span style={{ color: 'var(--text-color)' }}>
+                            <InboxOutlined style={{ color: 'var(--text-color)' }} />
                             Requests ({receivedRequests.length})
                         </span>
                     }
@@ -368,8 +386,11 @@ const FriendsPage: React.FC = () => {
                             <Col xs={24} lg={12}>
                                 <Card
                                     title={
-                                        <span>
-                                            <UserAddOutlined style={{ marginRight: '8px' }} />
+                                        <span style={{ color: 'var(--text-color)' }}>
+                                            <UserAddOutlined style={{
+                                                marginRight: '8px',
+                                                color: 'var(--text-color)'
+                                            }} />
                                             Received Requests ({receivedRequests.length})
                                         </span>
                                     }
@@ -406,8 +427,11 @@ const FriendsPage: React.FC = () => {
                             <Col xs={24} lg={12}>
                                 <Card
                                     title={
-                                        <span>
-                                            <InboxOutlined style={{ marginRight: '8px' }} />
+                                        <span style={{ color: 'var(--text-color)' }}>
+                                            <InboxOutlined style={{
+                                                marginRight: '8px',
+                                                color: 'var(--text-color)'
+                                            }} />
                                             Sent Requests ({sentRequests.length})
                                         </span>
                                     }

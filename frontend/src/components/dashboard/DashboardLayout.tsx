@@ -118,10 +118,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onLogout }) => {
     };
 
     return (
-        <Layout style={{ minHeight: '100vh' }}>
+        <Layout style={{ minHeight: '100vh', background: 'var(--body-background)' }}>
             <Sider
                 width={240}
-                theme="dark"
+                theme="light"
                 breakpoint="lg"
                 collapsedWidth="0"
                 collapsed={collapsed}
@@ -134,19 +134,21 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onLogout }) => {
                     left: 0,
                     top: 0,
                     bottom: 0,
-                    zIndex: 100
+                    zIndex: 100,
+                    background: 'var(--sider-background)',
+                    borderRight: '1px solid var(--border-color)'
                 }}
                 trigger={null}
             >
                 <div style={{
                     height: 64,
                     margin: 16,
-                    background: 'rgba(255, 255, 255, 0.2)',
+                    background: 'var(--primary-color)',
                     borderRadius: 8,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: 'white',
+                    color: '#ffffff',
                     fontWeight: 'bold',
                     fontSize: '18px'
                 }}>
@@ -155,7 +157,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onLogout }) => {
                 <Menu
                     mode="inline"
                     selectedKeys={[selectedKey]}
-                    style={{ height: '100%', borderRight: 0 }}
+                    style={{
+                        height: '100%',
+                        borderRight: 0,
+                        background: 'var(--sider-background)'
+                    }}
                     items={menuItems}
                     onClick={({ key }) => handleMenuClick(key)}
                 />
@@ -163,7 +169,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onLogout }) => {
 
             <Layout style={{
                 marginLeft: collapsed ? 0 : 240,
-                transition: 'margin-left 0.2s'
+                transition: 'margin-left 0.2s',
+                background: 'var(--body-background)'
             }}>
                 <Header style={{
                     background: 'var(--header-background)',

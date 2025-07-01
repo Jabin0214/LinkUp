@@ -42,12 +42,12 @@ const UserSettingsPanel: React.FC = () => {
                     marginBottom: 8,
                     fontSize: '24px',
                     fontWeight: 600,
-                    color: '#262626'
+                    color: 'var(--text-color)'
                 }}>
                     User Settings
                 </h2>
                 <p style={{
-                    color: '#8c8c8c',
+                    color: 'var(--text-color-secondary)',
                     fontSize: '14px',
                     margin: 0
                 }}>
@@ -67,7 +67,7 @@ const UserSettingsPanel: React.FC = () => {
                         }
                         style={{
                             borderRadius: 8,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+                            boxShadow: 'var(--shadow-1)'
                         }}
                     >
                         <Descriptions column={1} size="middle">
@@ -100,7 +100,7 @@ const UserSettingsPanel: React.FC = () => {
                         }
                         style={{
                             borderRadius: 8,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+                            boxShadow: 'var(--shadow-1)'
                         }}
                     >
                         <Form form={form} layout="vertical" onFinish={onPasswordChange}>

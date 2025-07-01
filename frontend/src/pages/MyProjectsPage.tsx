@@ -81,7 +81,7 @@ const MyProjectsPage: React.FC = () => {
             paddingRight: containerPadding,
             paddingBottom: '24px',
             minHeight: '100vh',
-            background: '#f5f5f5'
+            background: 'var(--body-background)'
         }}>
             {/* Header */}
             <div style={{ marginBottom: titleMargin }}>
@@ -89,10 +89,10 @@ const MyProjectsPage: React.FC = () => {
                     level={titleLevel}
                     style={{
                         marginBottom: '8px',
-                        color: '#262626'
+                        color: 'var(--text-color)'
                     }}
                 >
-                    <ProjectOutlined style={{ marginRight: iconMargin, color: '#1890ff' }} />
+                    <ProjectOutlined style={{ marginRight: iconMargin, color: 'var(--primary-color)' }} />
                     My Projects
                 </Title>
                 <Text type="secondary" style={{ fontSize: textSize }}>
@@ -118,7 +118,7 @@ const MyProjectsPage: React.FC = () => {
                             value={stats.total}
                             valueStyle={{ fontSize: isMobile ? '20px' : '24px' }}
                             prefix={<ProjectOutlined style={{
-                                color: '#1890ff',
+                                color: 'var(--primary-color)',
                                 fontSize: isMobile ? '16px' : '20px'
                             }} />}
                         />
@@ -133,7 +133,7 @@ const MyProjectsPage: React.FC = () => {
                             value={stats.owned}
                             valueStyle={{ fontSize: isMobile ? '20px' : '24px' }}
                             prefix={<TrophyOutlined style={{
-                                color: '#faad14',
+                                color: 'var(--warning-color)',
                                 fontSize: isMobile ? '16px' : '20px'
                             }} />}
                         />
@@ -148,7 +148,7 @@ const MyProjectsPage: React.FC = () => {
                             value={stats.joined}
                             valueStyle={{ fontSize: isMobile ? '20px' : '24px' }}
                             prefix={<TeamOutlined style={{
-                                color: '#52c41a',
+                                color: 'var(--success-color)',
                                 fontSize: isMobile ? '16px' : '20px'
                             }} />}
                         />
@@ -163,7 +163,7 @@ const MyProjectsPage: React.FC = () => {
                             value={stats.recruiting + stats.inProgress}
                             valueStyle={{ fontSize: isMobile ? '20px' : '24px' }}
                             prefix={<ClockCircleOutlined style={{
-                                color: '#ff4d4f',
+                                color: 'var(--error-color)',
                                 fontSize: isMobile ? '16px' : '20px'
                             }} />}
                         />
@@ -209,7 +209,7 @@ const MyProjectsPage: React.FC = () => {
                             image={Empty.PRESENTED_IMAGE_SIMPLE}
                             description={
                                 <div style={{ textAlign: 'center', padding: isMobile ? '0 16px' : '0' }}>
-                                    <Text style={{ fontSize: isMobile ? '14px' : '16px', color: '#666' }}>
+                                    <Text style={{ fontSize: isMobile ? '14px' : '16px', color: 'var(--text-color-secondary)' }}>
                                         You haven't created or joined any projects yet
                                     </Text>
                                     <br />

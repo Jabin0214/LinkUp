@@ -162,7 +162,7 @@ const ProjectFormPage: React.FC = () => {
     }
 
     return (
-        <div style={{ padding: '24px', background: '#f5f5f5', minHeight: '100vh' }}>
+        <div style={{ padding: '24px', background: 'var(--body-background)', minHeight: '100vh' }}>
             {/* Header */}
             <div style={{ marginBottom: '24px' }}>
                 <Button
@@ -174,7 +174,7 @@ const ProjectFormPage: React.FC = () => {
                 </Button>
 
                 <Title level={1} style={{ marginBottom: '8px' }}>
-                    <ProjectOutlined style={{ marginRight: '12px', color: '#1890ff' }} />
+                    <ProjectOutlined style={{ marginRight: '12px', color: 'var(--primary-color)' }} />
                     {isEditing ? 'Edit Project' : 'Create New Project'}
                 </Title>
                 <Text type="secondary" style={{ fontSize: '16px' }}>
@@ -358,7 +358,7 @@ const ProjectFormPage: React.FC = () => {
                     </Row>
 
                     {/* Action Buttons */}
-                    <div style={{ textAlign: 'center', marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #f0f0f0' }}>
+                    <div style={{ textAlign: 'center', marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--border-color)' }}>
                         <Space size="large">
                             <Button size="large" onClick={handleCancel}>
                                 Cancel

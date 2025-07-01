@@ -29,7 +29,7 @@ const SkillBoardPage: React.FC = () => {
 
     const getLevelColor = (level: string) => {
         const levelConfig = skillLevels.find(l => l.value === level);
-        return levelConfig?.color || '#d9d9d9';
+        return levelConfig?.color || 'var(--text-color-disabled)';
     };
 
     const handleCreateSkillBoard = () => {
@@ -73,7 +73,7 @@ const SkillBoardPage: React.FC = () => {
                             icon={<PlusOutlined />}
                             onClick={handleCreateSkillBoard}
                             style={{
-                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                background: 'linear-gradient(135deg, var(--primary-color) 0%, var(--primary-active) 100%)',
                                 border: 'none'
                             }}
                         >
@@ -166,18 +166,18 @@ const SkillBoardPage: React.FC = () => {
                             <Row gutter={16}>
                                 <Col span={12}>
                                     <div style={{ padding: '16px' }}>
-                                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>
+                                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--primary-color)' }}>
                                             {skillBoard?.skills.length || 0}
                                         </div>
-                                        <div style={{ color: '#8c8c8c' }}>Skills</div>
+                                        <div style={{ color: 'var(--text-color-secondary)' }}>Skills</div>
                                     </div>
                                 </Col>
                                 <Col span={12}>
                                     <div style={{ padding: '16px' }}>
-                                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#52c41a' }}>
+                                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--success-color)' }}>
                                             {skillBoard?.links.length || 0}
                                         </div>
-                                        <div style={{ color: '#8c8c8c' }}>Links</div>
+                                        <div style={{ color: 'var(--text-color-secondary)' }}>Links</div>
                                     </div>
                                 </Col>
                             </Row>
@@ -187,13 +187,13 @@ const SkillBoardPage: React.FC = () => {
                             <div style={{ textAlign: 'left' }}>
                                 <Space direction="vertical" size="small">
                                     <div>
-                                        <CalendarOutlined style={{ marginRight: '8px', color: '#8c8c8c' }} />
+                                        <CalendarOutlined style={{ marginRight: '8px', color: 'var(--text-color-secondary)' }} />
                                         <Text type="secondary">
                                             Created on {skillBoard && new Date(skillBoard.createdAt).toLocaleDateString()}
                                         </Text>
                                     </div>
                                     <div>
-                                        <EditOutlined style={{ marginRight: '8px', color: '#8c8c8c' }} />
+                                        <EditOutlined style={{ marginRight: '8px', color: 'var(--text-color-secondary)' }} />
                                         <Text type="secondary">
                                             Updated on {skillBoard && new Date(skillBoard.updatedAt).toLocaleDateString()}
                                         </Text>
@@ -234,7 +234,7 @@ const SkillBoardPage: React.FC = () => {
                                             <Tag
                                                 color={getLevelColor(skill.level)}
                                                 style={{
-                                                    color: skill.level === '初学' ? '#595959' : '#fff',
+                                                    color: skill.level === '初学' ? 'var(--text-color-secondary)' : '#ffffff',
                                                     fontWeight: '500',
                                                     border: 'none'
                                                 }}

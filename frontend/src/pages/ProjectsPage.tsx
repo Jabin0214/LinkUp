@@ -156,7 +156,7 @@ const ProjectsPage: React.FC = () => {
             paddingLeft: isMobile ? '16px' : '24px',
             paddingRight: isMobile ? '16px' : '24px',
             paddingBottom: '24px',
-            background: '#f5f5f5',
+            background: 'var(--body-background)',
             minHeight: '100vh'
         }}>
             {/* Header */}
@@ -168,19 +168,20 @@ const ProjectsPage: React.FC = () => {
                     level={isMobile ? 2 : 1}
                     style={{
                         marginBottom: isMobile ? '12px' : '16px',
-                        fontSize: isMobile ? '24px' : '32px'
+                        fontSize: isMobile ? '24px' : '32px',
+                        color: 'var(--primary-color)'
                     }}
                 >
                     <RocketOutlined style={{
                         marginRight: isMobile ? '8px' : '12px',
-                        color: '#1890ff',
+                        color: 'var(--primary-color)',
                         fontSize: isMobile ? '20px' : '24px'
                     }} />
                     Discover Amazing Projects
                 </Title>
                 <Paragraph style={{
                     fontSize: isMobile ? '14px' : '16px',
-                    color: '#666',
+                    color: 'var(--text-color-secondary)',
                     maxWidth: isMobile ? '100%' : '600px',
                     margin: '0 auto',
                     padding: isMobile ? '0 8px' : '0'
@@ -195,7 +196,6 @@ const ProjectsPage: React.FC = () => {
                     marginBottom: '24px',
                     borderRadius: isMobile ? '8px' : '12px'
                 }}
-                bodyStyle={{ padding: isMobile ? '16px' : '24px' }}
             >
                 <Row gutter={[isMobile ? 12 : 16, isMobile ? 16 : 16]}>
                     {/* 搜索框 */}
@@ -204,7 +204,8 @@ const ProjectsPage: React.FC = () => {
                             <Text strong style={{
                                 display: 'block',
                                 marginBottom: '8px',
-                                fontSize: isMobile ? '13px' : '14px'
+                                fontSize: isMobile ? '13px' : '14px',
+                                color: 'var(--text-color-secondary)'
                             }}>
                                 <SearchOutlined style={{ marginRight: '4px' }} />
                                 Search Projects
@@ -216,6 +217,9 @@ const ProjectsPage: React.FC = () => {
                                 onPressEnter={handleSearch}
                                 allowClear
                                 size={isMobile ? 'middle' : 'middle'}
+                                style={{
+                                    color: 'var(--text-color-secondary)'
+                                }}
                             />
                         </div>
                     </Col>
@@ -226,14 +230,15 @@ const ProjectsPage: React.FC = () => {
                             <Text strong style={{
                                 display: 'block',
                                 marginBottom: '8px',
-                                fontSize: isMobile ? '13px' : '14px'
+                                fontSize: isMobile ? '13px' : '14px',
+                                color: 'var(--text-color-secondary)'
                             }}>
                                 <FolderOutlined style={{ marginRight: '4px' }} />
                                 Category
                             </Text>
                             <Select
                                 placeholder="All Categories"
-                                style={{ width: '100%' }}
+                                style={{ width: '100%'}}
                                 value={selectedCategory}
                                 onChange={setSelectedCategory}
                                 allowClear
@@ -252,7 +257,8 @@ const ProjectsPage: React.FC = () => {
                             <Text strong style={{
                                 display: 'block',
                                 marginBottom: '8px',
-                                fontSize: isMobile ? '13px' : '14px'
+                                fontSize: isMobile ? '13px' : '14px',
+                                color: 'var(--text-color-secondary)'
                             }}>
                                 <StarOutlined style={{ marginRight: '4px' }} />
                                 Status
@@ -308,7 +314,8 @@ const ProjectsPage: React.FC = () => {
                     <Text strong style={{
                         display: 'block',
                         marginBottom: isMobile ? '8px' : '12px',
-                        fontSize: isMobile ? '13px' : '14px'
+                        fontSize: isMobile ? '13px' : '14px',
+                        color: 'var(--text-color-secondary)'
                     }}>
                         Required Skills
                     </Text>
@@ -324,7 +331,8 @@ const ProjectsPage: React.FC = () => {
                                     onChange={() => handleSkillToggle(skill)}
                                     style={{
                                         fontSize: isMobile ? '12px' : '13px',
-                                        padding: isMobile ? '2px 8px' : '4px 12px'
+                                        padding: isMobile ? '2px 8px' : '4px 12px',
+                                        color: 'var(--text-color-secondary)'
                                     }}
                                 >
                                     {skill}
@@ -370,7 +378,7 @@ const ProjectsPage: React.FC = () => {
                                 }}>
                                     <Text style={{
                                         fontSize: isMobile ? '14px' : '16px',
-                                        color: '#666'
+                                        color: 'var(--text-color-secondary)'
                                     }}>
                                         No projects found
                                     </Text>

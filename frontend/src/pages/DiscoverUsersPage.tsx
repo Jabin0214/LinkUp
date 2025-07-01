@@ -14,7 +14,7 @@ import {
     Divider,
     Button
 } from 'antd';
-import { SearchOutlined, TeamOutlined, BankOutlined } from '@ant-design/icons';
+import { TeamOutlined, BankOutlined } from '@ant-design/icons';
 import { useAppSelector } from '../store/hooks';
 import { discoverUsers, getUniversities, DiscoverUser, University } from '../Services/UserService';
 import { sendFriendRequest } from '../Services/FriendService';
@@ -23,7 +23,6 @@ import { handleAuthError, isUserAuthenticated, getCurrentToken } from '../utils/
 import { store } from '../store';
 
 const { Title, Text } = Typography;
-const { Search } = Input;
 const { Option } = Select;
 
 const DiscoverUsersPage: React.FC = () => {
@@ -266,7 +265,12 @@ const DiscoverUsersPage: React.FC = () => {
     // Early authentication check
     if (!isUserAuthenticated()) {
         return (
-            <div style={{ padding: '24px', color: 'var(--text-color)' }}>
+            <div style={{
+                padding: '24px',
+                color: 'var(--text-color)',
+                backgroundColor: 'var(--body-background)',
+                minHeight: '100vh'
+            }}>
                 <div style={{ marginBottom: '24px' }}>
                     <Title level={2} style={{
                         color: 'var(--text-color)',
@@ -339,7 +343,12 @@ const DiscoverUsersPage: React.FC = () => {
     }
 
     return (
-        <div style={{ padding: '24px', color: 'var(--text-color)' }}>
+        <div style={{
+            padding: '24px',
+            color: 'var(--text-color)',
+            backgroundColor: 'var(--body-background)',
+            minHeight: '100vh'
+        }}>
             <div style={{ marginBottom: '24px' }}>
                 <Title level={2} style={{
                     color: 'var(--text-color)',
@@ -363,13 +372,21 @@ const DiscoverUsersPage: React.FC = () => {
             }}>
                 <Row gutter={[16, 16]} align="middle">
                     <Col xs={24} md={12}>
-                        <Search
+                        <Input
                             placeholder="Search by name or username..."
                             allowClear
-                            enterButton={<SearchOutlined />}
                             size="large"
-                            onSearch={handleSearch}
-                            style={{ width: '100%' }}
+                            onPressEnter={(e) => handleSearch((e.target as HTMLInputElement).value)}
+                            onChange={(e) => {
+                                if (!e.target.value) {
+                                    handleSearch(''); // 当清空输入框时立即搜索
+                                }
+                            }}
+                            onBlur={(e) => handleSearch(e.target.value)}
+                            style={{
+                                width: '100%',
+                                color: 'var(--text-color-secondary)'
+                            }}
                         />
                     </Col>
                     <Col xs={24} md={8}>

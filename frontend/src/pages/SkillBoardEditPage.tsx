@@ -312,7 +312,7 @@ const SkillBoardEditPage: React.FC = () => {
                                     ]}
                                 >
                                     <div style={{ display: 'flex', gap: '12px', width: '100%', alignItems: 'center' }}>
-                                        <DragOutlined style={{ color: '#d9d9d9' }} />
+                                        <DragOutlined style={{ color: 'var(--text-color-disabled)' }} />
                                         <Input
                                             placeholder="Programming Language/Technology Stack"
                                             value={skill.language}
@@ -372,7 +372,7 @@ const SkillBoardEditPage: React.FC = () => {
                                     ]}
                                 >
                                     <div style={{ display: 'flex', gap: '12px', width: '100%', alignItems: 'center' }}>
-                                        <DragOutlined style={{ color: '#d9d9d9' }} />
+                                        <DragOutlined style={{ color: 'var(--text-color-disabled)' }} />
                                         <Input
                                             placeholder="Link Title (e.g., GitHub, Portfolio)"
                                             value={link.title}
@@ -404,7 +404,7 @@ const SkillBoardEditPage: React.FC = () => {
                             loading={submitLoading}
                             icon={<SaveOutlined />}
                             style={{
-                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                background: 'linear-gradient(135deg, var(--primary-color) 0%, var(--primary-active) 100%)',
                                 border: 'none',
                                 minWidth: '120px'
                             }}

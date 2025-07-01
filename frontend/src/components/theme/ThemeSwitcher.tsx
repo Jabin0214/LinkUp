@@ -121,7 +121,7 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
                 size={size}
                 icon={getCurrentThemeIcon()}
                 style={{
-                    color: isDark ? '#fff' : 'inherit',
+                    color: isDark ? 'var(--text-color)' : 'inherit',
                     display: 'flex',
                     alignItems: 'center',
                     gap: showLabel ? '6px' : 0

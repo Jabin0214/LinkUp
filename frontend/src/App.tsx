@@ -9,6 +9,7 @@ import { fetchUserInfo, logout, initializeAuth } from './store/slices/authSlice'
 import { resetSkillBoard } from './store/slices/skillBoardSlice';
 import { clearProjectState } from './store/slices/projectSlice';
 import { useTheme } from './hooks/useTheme';
+import { isUserAuthenticated } from './utils/authUtils';
 import 'antd/dist/reset.css';
 import './styles/themes.css';
 
@@ -24,6 +25,16 @@ const App: React.FC = () => {
   useEffect(() => {
     // 初始化认证状态（基于redux-persist恢复的数据）
     dispatch(initializeAuth());
+
+    // 验证当前认证状态
+    setTimeout(() => {
+      if (!isUserAuthenticated()) {
+        console.log('🔧 Invalid authentication state detected, cleaning up...');
+        dispatch(logout());
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+      }
+    }, 100); // 短暂延迟确保Redux state已初始化
 
     // 如果有token但没有用户信息，获取用户信息
     if (token && !user) {

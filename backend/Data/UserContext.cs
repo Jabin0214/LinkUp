@@ -15,6 +15,8 @@ namespace Data
         public DbSet<Models.LinkItem> LinkItems { get; set; } = default!;
         public DbSet<Models.Project> Projects { get; set; } = default!;
         public DbSet<Models.ProjectMember> ProjectMembers { get; set; } = default!;
+        public DbSet<Models.Friend> Friends { get; set; } = default!;
+        public DbSet<Models.FriendRequest> FriendRequests { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -43,6 +45,64 @@ namespace Data
                 entity.HasIndex(e => e.Email).IsUnique();
                 entity.HasIndex(e => e.CreatedAt);
                 entity.HasIndex(e => e.IsActive);
+                entity.HasIndex(e => e.university); // Add index for university-based queries
+            });
+
+            // Friend configuration
+            modelBuilder.Entity<Models.Friend>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+
+                // Foreign key relationships
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.FriendUser)
+                    .WithMany()
+                    .HasForeignKey(e => e.FriendUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Composite unique constraint: prevent duplicate friendships
+                entity.HasIndex(e => new { e.UserId, e.FriendUserId }).IsUnique();
+
+                // Indexes for performance
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => e.FriendUserId);
+                entity.HasIndex(e => e.CreatedAt);
+            });
+
+            // FriendRequest configuration
+            modelBuilder.Entity<Models.FriendRequest>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Status).IsRequired().HasMaxLength(20).HasDefaultValue("Pending");
+                entity.Property(e => e.Message).HasMaxLength(500);
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+
+                // Foreign key relationships
+                entity.HasOne(e => e.Sender)
+                    .WithMany()
+                    .HasForeignKey(e => e.SenderId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Receiver)
+                    .WithMany()
+                    .HasForeignKey(e => e.ReceiverId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Composite unique constraint: prevent duplicate requests
+                entity.HasIndex(e => new { e.SenderId, e.ReceiverId }).IsUnique();
+
+                // Indexes for performance
+                entity.HasIndex(e => e.SenderId);
+                entity.HasIndex(e => e.ReceiverId);
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.CreatedAt);
             });
 
             // SkillBoard配置

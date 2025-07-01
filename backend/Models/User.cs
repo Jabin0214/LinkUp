@@ -32,6 +32,9 @@ namespace Models
         public DateTime? LastLoginAt { get; set; }
 
         public bool IsActive { get; set; } = true;
+
+        // Navigation properties
+        public virtual ICollection<SkillBoard> SkillBoards { get; set; } = new List<SkillBoard>();
     }
 
     public class LoginRequest

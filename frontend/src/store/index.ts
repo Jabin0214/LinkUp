@@ -12,7 +12,7 @@ const persistConfig = {
     version: 1,
     storage,
     // 只持久化重要数据，token用于自动登录，user用于减少API调用
-    whitelist: ['token', 'refreshToken', 'user', 'lastUpdated']
+    whitelist: ['token', 'refreshToken', 'user', 'lastUpdated', 'isAuthenticated']
 };
 
 // skillBoard持久化配置 

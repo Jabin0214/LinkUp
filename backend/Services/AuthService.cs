@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Models;
 using Data;
+using BCrypt.Net;
 
 namespace Services
 {
@@ -216,15 +217,14 @@ namespace Services
 
         private string HashPassword(string password)
         {
-            using var sha256 = SHA256.Create();
-            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(hashedBytes);
+            // Use BCrypt for password hashing with work factor 12 (recommended value)
+            return BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
         }
 
         private bool VerifyPassword(string password, string hash)
         {
-            var hashedPassword = HashPassword(password);
-            return hashedPassword == hash;
+            // Use BCrypt to verify password
+            return BCrypt.Net.BCrypt.Verify(password, hash);
         }
     }
 }

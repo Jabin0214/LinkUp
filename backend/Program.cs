@@ -4,8 +4,25 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Services;
 using Data;
+using Middleware;
+using Serilog;
+using FluentValidation;
+using Validators;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using AspNetCoreRateLimit;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -15,6 +32,23 @@ builder.Services.AddDbContext<UserContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Add FluentValidation
+builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
+
+// API versioning will be added in future versions
+
+// Add health checks
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<UserContext>()
+    .AddCheck("self", () => HealthCheckResult.Healthy("API is running"));
+
+// Add rate limiting
+builder.Services.AddMemoryCache();
+builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimit"));
+builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
+builder.Services.AddInMemoryRateLimiting();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
 // Configure JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT key not configured");
@@ -54,7 +88,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// 数据初始化
+// Data initialization
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<UserContext>();
@@ -64,12 +98,18 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"数据初始化失败: {ex.Message}");
+        Console.WriteLine($"Data initialization failed: {ex.Message}");
     }
 }
 
 // Enable CORS
 app.UseCors("AllowReactApp");
+
+// Add global exception handling middleware
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
+// Enable rate limiting
+app.UseIpRateLimiting();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -84,5 +124,37 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Configure health check endpoints
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        var response = new
+        {
+            status = report.Status.ToString(),
+            checks = report.Entries.Select(x => new
+            {
+                name = x.Key,
+                status = x.Value.Status.ToString(),
+                description = x.Value.Description,
+                duration = x.Value.Duration.TotalMilliseconds
+            }),
+            totalDuration = report.TotalDuration.TotalMilliseconds
+        };
+        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
+    }
+});
+
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+});
+
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false
+});
 
 app.Run();

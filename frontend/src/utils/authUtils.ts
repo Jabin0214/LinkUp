@@ -4,8 +4,8 @@ import { logout } from '../store/slices/authSlice';
 // 检查是否是认证错误
 export const isAuthError = (error: any): boolean => {
     return error?.response?.status === 401 ||
-        error?.code === 'ERR_BAD_REQUEST' &&
-        error?.response?.status === 401;
+        (error?.code === 'ERR_BAD_REQUEST' &&
+            error?.response?.status === 401);
 };
 
 // 检查JWT token是否过期
@@ -15,7 +15,6 @@ export const isTokenExpired = (token: string): boolean => {
         const currentTime = Date.now() / 1000;
         return payload.exp < currentTime;
     } catch (error) {
-        console.log('❌ Error parsing token:', error);
         return true; // 如果无法解析，认为已过期
     }
 };
@@ -23,8 +22,6 @@ export const isTokenExpired = (token: string): boolean => {
 // 处理认证错误 - 自动登出并清理状态
 export const handleAuthError = (error: any) => {
     if (isAuthError(error)) {
-        console.log('🚨 Authentication error detected, logging out...');
-
         // 清理localStorage
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
@@ -53,7 +50,6 @@ export const isValidTokenFormat = (token: string | null): boolean => {
 
     // 检查是否过期
     if (isTokenExpired(token)) {
-        console.log('❌ Token has expired');
         return false;
     }
 
@@ -66,7 +62,6 @@ export const getCurrentToken = (): string | null => {
     const token = state.auth.token;
 
     if (!isValidTokenFormat(token)) {
-        console.log('❌ Invalid token format detected or token expired');
         return null;
     }
 
@@ -80,13 +75,6 @@ export const isUserAuthenticated = (): boolean => {
 
     const hasValidToken = isValidTokenFormat(token);
     const hasUserInfo = !!user && !!user.username;
-
-    console.log('🔍 Auth check:', {
-        isAuthenticated,
-        hasValidToken,
-        hasUserInfo,
-        tokenLength: token?.length || 0
-    });
 
     return isAuthenticated &&
         hasValidToken &&

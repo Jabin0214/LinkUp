@@ -11,7 +11,6 @@ import {
     Typography,
     Row,
     Col,
-    Divider,
     List,
     Modal
 } from 'antd';
@@ -54,7 +53,7 @@ const SkillBoardEditPage: React.FC = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const { token } = useAppSelector(state => state.auth);
-    const { skillBoard, loading: reduxLoading, error } = useAppSelector(state => state.skillBoard);
+    const { skillBoard, error } = useAppSelector(state => state.skillBoard);
     const [form] = Form.useForm();
     const [submitLoading, setSubmitLoading] = useState(false);
     const [initialLoading, setInitialLoading] = useState(true);

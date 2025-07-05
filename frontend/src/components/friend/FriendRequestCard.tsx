@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Avatar, Space, Button, message } from 'antd';
+import { Card, Avatar, Space, Button } from 'antd';
 import { UserOutlined, BankOutlined, ClockCircleOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { FriendRequestInfo } from '../../Services/FriendService';

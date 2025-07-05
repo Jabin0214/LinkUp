@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Card,
@@ -23,7 +23,6 @@ import {
     UserAddOutlined,
     CheckOutlined,
     ClockCircleOutlined,
-    MessageOutlined,
     ArrowLeftOutlined,
     LinkOutlined,
     CodeOutlined
@@ -48,7 +47,7 @@ const UserProfilePage: React.FC = () => {
     const [requestMessage, setRequestMessage] = useState('');
 
     // Load user profile
-    const loadProfile = async () => {
+    const loadProfile = useCallback(async () => {
         if (!token || !id) return;
 
         try {
@@ -72,7 +71,7 @@ const UserProfilePage: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token, id, navigate]);
 
     // Handle friend request
     const handleSendFriendRequest = async () => {
@@ -159,7 +158,7 @@ const UserProfilePage: React.FC = () => {
 
     useEffect(() => {
         loadProfile();
-    }, [id, token]);
+    }, [id, token, loadProfile]);
 
     if (loading) {
         return (
@@ -238,12 +237,6 @@ const UserProfilePage: React.FC = () => {
 
                             <Space size={12}>
                                 {getFriendshipStatusButton()}
-                                <Button
-                                    icon={<MessageOutlined />}
-                                    disabled
-                                >
-                                    Message
-                                </Button>
                             </Space>
                         </Space>
                     </Card>

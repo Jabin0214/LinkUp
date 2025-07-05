@@ -74,6 +74,9 @@ export interface DiscoverUser {
     university?: string;
     joinedAt: string;
     isSchoolmate: boolean;
+    isFriend: boolean;
+    hasPendingRequest: boolean;
+    friendRequestStatus?: 'sent' | 'received' | null;
 }
 
 export interface DiscoverUsersResponse {

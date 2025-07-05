@@ -45,8 +45,6 @@ const themeSlice = createSlice({
 
             // 保存到localStorage
             localStorage.setItem('themeMode', action.payload);
-
-            console.log(`🎨 Theme mode changed to: ${action.payload}, isDark: ${state.isDark}`);
         },
 
         // 更新系统主题偏好（当系统主题改变时）
@@ -56,7 +54,6 @@ const themeSlice = createSlice({
             // 如果当前是auto模式，重新计算isDark
             if (state.mode === 'auto') {
                 state.isDark = action.payload;
-                console.log(`🔄 System theme preference updated: ${action.payload}, isDark: ${state.isDark}`);
             }
         },
 
@@ -68,8 +65,6 @@ const themeSlice = createSlice({
 
             // 保存到localStorage
             localStorage.setItem('themeMode', newMode);
-
-            console.log(`🔀 Theme toggled to: ${newMode}`);
         },
 
         // 初始化主题（用于应用启动时）
@@ -77,8 +72,6 @@ const themeSlice = createSlice({
             const systemPrefersDark = getSystemThemePreference();
             state.systemPrefersDark = systemPrefersDark;
             state.isDark = calculateActualTheme(state.mode, systemPrefersDark);
-
-            console.log(`🚀 Theme initialized: mode=${state.mode}, isDark=${state.isDark}, system=${systemPrefersDark}`);
         }
     }
 });

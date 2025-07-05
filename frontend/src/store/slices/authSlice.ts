@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { AuthResponse, LoginRequest, RegisterRequest } from '../../Services/UserService';
 import * as authAPI from '../../Services/UserService';
 
@@ -38,11 +38,8 @@ export const fetchUserInfo = createAsyncThunk(
 
         // 如果数据是最近获取的且用户信息存在，跳过请求
         if (lastUpdated && user && (Date.now() - lastUpdated < CACHE_DURATION)) {
-            console.log('🚀 Using cached user data, skipping API call');
             return user;
         }
-
-        console.log('📡 Fetching fresh user data from API');
         try {
             const userInfo = await authAPI.getCurrentUser(token);
             return userInfo;
@@ -95,7 +92,6 @@ export const updateUserOptimistic = createAsyncThunk(
         try {
             // 这里可以添加实际的更新API调用
             // const updatedUser = await authAPI.updateUser(token, updates);
-            console.log('🔄 Optimistic update:', optimisticUser);
             return optimisticUser;
         } catch (error: any) {
             // 如果后台更新失败，恢复原始数据
@@ -127,7 +123,6 @@ const authSlice = createSlice({
         validatePersistedData: (state) => {
             // 如果数据过期，清除用户信息但保留token用于重新获取
             if (state.lastUpdated && (Date.now() - state.lastUpdated > CACHE_DURATION)) {
-                console.log('⚠️ Persisted user data expired, will refresh on next request');
                 state.user = null;
                 state.lastUpdated = null;
             }
@@ -135,7 +130,6 @@ const authSlice = createSlice({
             // 如果有token，确保设置为已认证状态
             if (state.token && state.refreshToken) {
                 state.isAuthenticated = true;
-                console.log('🔄 Restored authentication state from persistence');
             }
         },
 
@@ -144,7 +138,6 @@ const authSlice = createSlice({
             // 如果有有效的token，设置为已认证状态
             if (state.token && state.refreshToken) {
                 state.isAuthenticated = true;
-                console.log('✅ Authentication state initialized');
             } else {
                 // 清理无效状态
                 state.isAuthenticated = false;
@@ -152,7 +145,6 @@ const authSlice = createSlice({
                 state.token = null;
                 state.refreshToken = null;
                 state.lastUpdated = null;
-                console.log('🧹 Cleared invalid authentication state');
             }
         }
     },

@@ -4,7 +4,6 @@ import {
     UserOutlined,
     BankOutlined,
     ClockCircleOutlined,
-    MessageOutlined,
     MoreOutlined,
     UserDeleteOutlined
 } from '@ant-design/icons';
@@ -14,14 +13,12 @@ import { FriendInfo } from '../../Services/FriendService';
 interface FriendCardProps {
     friend: FriendInfo;
     onRemoveFriend?: (friendId: number) => void;
-    onSendMessage?: (friendId: number) => void;
     loading?: boolean;
 }
 
 const FriendCard: React.FC<FriendCardProps> = ({
     friend,
     onRemoveFriend,
-    onSendMessage,
     loading = false
 }) => {
     const navigate = useNavigate();
@@ -30,10 +27,7 @@ const FriendCard: React.FC<FriendCardProps> = ({
         navigate(`/dashboard/user/${friend.id}`);
     };
 
-    const handleSendMessage = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onSendMessage?.(friend.id);
-    };
+
 
     const handleRemoveFriend = () => {
         onRemoveFriend?.(friend.id);
@@ -76,17 +70,6 @@ const FriendCard: React.FC<FriendCardProps> = ({
                         style={{ color: 'var(--text-color)' }}
                     >
                         Profile
-                    </Button>
-                </Tooltip>,
-                <Tooltip title="Send Message">
-                    <Button
-                        type="text"
-                        icon={<MessageOutlined />}
-                        onClick={handleSendMessage}
-                        style={{ color: 'var(--primary-color)' }}
-                        disabled
-                    >
-                        Message
                     </Button>
                 </Tooltip>,
                 <Dropdown menu={{ items: moreMenuItems }} trigger={['click']}>

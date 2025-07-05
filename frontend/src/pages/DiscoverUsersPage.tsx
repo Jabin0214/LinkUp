@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Row,
     Col,
@@ -11,7 +11,6 @@ import {
     Space,
     Typography,
     Card,
-    Divider,
     Button
 } from 'antd';
 import { TeamOutlined, BankOutlined } from '@ant-design/icons';
@@ -20,7 +19,6 @@ import { discoverUsers, getUniversities, DiscoverUser, University } from '../Ser
 import { sendFriendRequest } from '../Services/FriendService';
 import UserCard from '../components/user/UserCard';
 import { handleAuthError, isUserAuthenticated, getCurrentToken } from '../utils/authUtils';
-import { store } from '../store';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -43,28 +41,18 @@ const DiscoverUsersPage: React.FC = () => {
     const pageSize = 12;
 
     // Load users
-    const loadUsers = async (page: number = 1, resetSearch: boolean = false) => {
+    const loadUsers = useCallback(async (page: number = 1, resetSearch: boolean = false) => {
         // 使用工具函数进行更严格的认证检查
         if (!isUserAuthenticated()) {
-            console.log('❌ User not properly authenticated');
             message.error('Please login first to discover users');
             return;
         }
 
         const validToken = getCurrentToken();
         if (!validToken) {
-            console.log('❌ No valid token available');
             message.error('Invalid authentication token. Please login again.');
             return;
         }
-
-        console.log('🔑 Loading users with token:', {
-            hasToken: !!validToken,
-            isAuthenticated,
-            tokenLength: validToken?.length || 0,
-            tokenStart: validToken?.substring(0, 10) + '...',
-            user: user?.username
-        });
 
         try {
             setLoading(true);
@@ -97,18 +85,16 @@ const DiscoverUsersPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [selectedUniversity, searchTerm]);
 
     // Load universities
     const loadUniversities = async () => {
         if (!isUserAuthenticated()) {
-            console.log('❌ User not authenticated for universities');
             return;
         }
 
         const validToken = getCurrentToken();
         if (!validToken) {
-            console.log('❌ No valid token for universities');
             return;
         }
 
@@ -180,7 +166,7 @@ const DiscoverUsersPage: React.FC = () => {
     // Effect to load data when filters change
     useEffect(() => {
         loadUsers(1, true);
-    }, [searchTerm, selectedUniversity, token]);
+    }, [searchTerm, selectedUniversity, token, loadUsers]);
 
     // Initial load
     useEffect(() => {
@@ -323,14 +309,6 @@ const DiscoverUsersPage: React.FC = () => {
                             type="link"
                             size="small"
                             onClick={() => {
-                                const state = JSON.parse(localStorage.getItem('persist:root') || '{}');
-                                console.log('🔍 Debug Info:', {
-                                    localStorage: {
-                                        token: localStorage.getItem('token'),
-                                        persistedState: state
-                                    },
-                                    reduxState: window.location.href.includes('debug') ? store.getState() : 'Add ?debug to URL to see'
-                                });
                                 message.info('Debug info logged to console');
                             }}
                         >

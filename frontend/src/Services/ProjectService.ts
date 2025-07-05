@@ -225,16 +225,11 @@ class ProjectService {
             throw new Error('You must be logged in to create a project');
         }
 
-        console.log('Creating project with data:', projectData);
-        console.log('Using token:', token ? 'Token exists' : 'No token');
-
         const response = await fetch(`${API_BASE_URL}/project`, {
             method: 'POST',
             headers: this.getHeaders(),
             body: JSON.stringify(projectData),
         });
-
-        console.log('Create project response status:', response.status);
 
         if (!response.ok) {
             if (response.status === 401) {

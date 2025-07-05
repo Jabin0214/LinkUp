@@ -21,7 +21,6 @@ export const useTheme = () => {
             document.body.classList.remove('dark-theme');
         }
 
-        console.log(`🎨 Applied theme to DOM: ${isDark ? 'dark' : 'light'}`);
     }, [isDark]);
 
     // 立即初始化主题，防止闪白

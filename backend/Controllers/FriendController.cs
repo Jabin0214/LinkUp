@@ -41,21 +41,25 @@ namespace Controllers
                 .AsQueryable();
 
             var friendsData = await query.ToListAsync();
-            var friendInfoQuery = friendsData
+
+            // Extract unique friend users and avoid duplicates
+            var friendUsers = friendsData
                 .Select(f => f.UserId == currentUserId ? f.FriendUser : f.User)
-                .AsQueryable();
+                .GroupBy(u => u.Id)
+                .Select(g => g.First())
+                .ToList();
 
             // Apply search filter
             if (!string.IsNullOrEmpty(search))
             {
-                friendInfoQuery = friendInfoQuery.Where(u =>
+                friendUsers = friendUsers.Where(u =>
                     u.Username.Contains(search) ||
                     u.FirstName.Contains(search) ||
-                    u.LastName.Contains(search));
+                    u.LastName.Contains(search)).ToList();
             }
 
-            var totalCount = friendInfoQuery.Count();
-            var friends = friendInfoQuery
+            var totalCount = friendUsers.Count();
+            var friends = friendUsers
                 .Skip((page - 1) * size)
                 .Take(size)
                 .Select(u => new FriendInfo
@@ -275,16 +279,18 @@ namespace Controllers
         {
             var currentUserId = GetCurrentUserId();
 
-            // Get current user's friends
+            // Get current user's friends (both directions)
             var currentUserFriends = await _context.Friends
-                .Where(f => f.UserId == currentUserId)
-                .Select(f => f.FriendUserId)
+                .Where(f => f.UserId == currentUserId || f.FriendUserId == currentUserId)
+                .Select(f => f.UserId == currentUserId ? f.FriendUserId : f.UserId)
+                .Distinct()
                 .ToListAsync();
 
-            // Get target user's friends
+            // Get target user's friends (both directions)
             var targetUserFriends = await _context.Friends
-                .Where(f => f.UserId == userId)
-                .Select(f => f.FriendUserId)
+                .Where(f => f.UserId == userId || f.FriendUserId == userId)
+                .Select(f => f.UserId == userId ? f.FriendUserId : f.UserId)
+                .Distinct()
                 .ToListAsync();
 
             // Find mutual friends

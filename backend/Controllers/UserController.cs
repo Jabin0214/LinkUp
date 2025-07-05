@@ -69,20 +69,48 @@ namespace Controllers
             }
 
             var totalCount = await query.CountAsync();
-            var users = await query
+            var usersData = await query
                 .Skip((page - 1) * size)
                 .Take(size)
-                .Select(u => new
-                {
-                    u.Id,
-                    u.Username,
-                    u.FirstName,
-                    u.LastName,
-                    u.university,
-                    JoinedAt = u.CreatedAt,
-                    IsSchoolmate = u.university == currentUserUniversity && !string.IsNullOrEmpty(currentUserUniversity)
-                })
                 .ToListAsync();
+
+            // Get friend status for all users in batch
+            var userIds = usersData.Select(u => u.Id).ToList();
+            var friendships = await _context.Friends
+                .Where(f =>
+                    (f.UserId == currentUserId && userIds.Contains(f.FriendUserId)) ||
+                    (f.FriendUserId == currentUserId && userIds.Contains(f.UserId)))
+                .ToListAsync();
+
+            var pendingRequests = await _context.FriendRequests
+                .Where(fr =>
+                    ((fr.SenderId == currentUserId && userIds.Contains(fr.ReceiverId)) ||
+                     (fr.ReceiverId == currentUserId && userIds.Contains(fr.SenderId))) &&
+                    fr.Status == "Pending")
+                .ToListAsync();
+
+            var users = usersData.Select(u => new
+            {
+                u.Id,
+                u.Username,
+                u.FirstName,
+                u.LastName,
+                u.university,
+                JoinedAt = u.CreatedAt,
+                IsSchoolmate = u.university == currentUserUniversity && !string.IsNullOrEmpty(currentUserUniversity),
+                IsFriend = friendships.Any(f =>
+                    (f.UserId == currentUserId && f.FriendUserId == u.Id) ||
+                    (f.FriendUserId == currentUserId && f.UserId == u.Id)),
+                HasPendingRequest = pendingRequests.Any(pr =>
+                    (pr.SenderId == currentUserId && pr.ReceiverId == u.Id) ||
+                    (pr.ReceiverId == currentUserId && pr.SenderId == u.Id)),
+                FriendRequestStatus = pendingRequests
+                    .Where(pr =>
+                        (pr.SenderId == currentUserId && pr.ReceiverId == u.Id) ||
+                        (pr.ReceiverId == currentUserId && pr.SenderId == u.Id))
+                    .Select(pr => pr.SenderId == currentUserId ? "sent" : "received")
+                    .FirstOrDefault()
+            }).ToList();
 
             return Ok(new
             {

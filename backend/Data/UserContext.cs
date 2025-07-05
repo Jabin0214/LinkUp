@@ -118,10 +118,10 @@ namespace Data
                 // 一个用户只能有一个技能板
                 entity.HasIndex(e => e.UserId).IsUnique();
 
-                // 外键关系
+                // 外键关系 - 一对一关系
                 entity.HasOne(e => e.User)
-                    .WithMany()
-                    .HasForeignKey(e => e.UserId)
+                    .WithOne(u => u.SkillBoard)
+                    .HasForeignKey<Models.SkillBoard>(e => e.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasMany(e => e.Skills)

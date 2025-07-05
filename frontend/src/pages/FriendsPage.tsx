@@ -52,7 +52,6 @@ const FriendsPage: React.FC = () => {
     // Load friends
     const loadFriends = async (page: number = 1, search: string = '') => {
         if (!isUserAuthenticated()) {
-            console.log('❌ User not properly authenticated for friends');
             message.error('Please login to view your friends');
             return;
         }
@@ -91,7 +90,6 @@ const FriendsPage: React.FC = () => {
     // Load friend requests
     const loadFriendRequests = async () => {
         if (!isUserAuthenticated()) {
-            console.log('❌ User not authenticated for friend requests');
             return;
         }
 
@@ -199,10 +197,7 @@ const FriendsPage: React.FC = () => {
         });
     };
 
-    // Handle send message (placeholder)
-    const handleSendMessage = (friendId: number) => {
-        message.info('Messaging feature coming soon!');
-    };
+
 
     // Handle friends search
     const handleFriendsSearch = (value: string) => {
@@ -229,7 +224,6 @@ const FriendsPage: React.FC = () => {
     useEffect(() => {
         // 检查用户是否已认证
         if (!isUserAuthenticated()) {
-            console.log('❌ User not authenticated, skipping data load');
             return;
         }
 
@@ -338,7 +332,6 @@ const FriendsPage: React.FC = () => {
                                             onRemoveFriend={(friendId) =>
                                                 handleRemoveFriend(friendId, `${friend.firstName} ${friend.lastName}`)
                                             }
-                                            onSendMessage={handleSendMessage}
                                         />
                                     </Col>
                                 ))}

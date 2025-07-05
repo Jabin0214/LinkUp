@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Avatar, Space, Tag, Button, Tooltip } from 'antd';
-import { UserOutlined, BankOutlined, ClockCircleOutlined, UserAddOutlined } from '@ant-design/icons';
+import { UserOutlined, BankOutlined, ClockCircleOutlined, UserAddOutlined, CheckOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { DiscoverUser } from '../../Services/UserService';
 
@@ -30,6 +30,70 @@ const UserCard: React.FC<UserCardProps> = ({ user, onSendFriendRequest, loading 
         });
     };
 
+    const getFriendActionButton = () => {
+        if (user.isFriend) {
+            return (
+                <Tooltip title="Already Friends">
+                    <Button
+                        type="text"
+                        icon={<CheckOutlined />}
+                        disabled
+                        style={{ color: 'var(--success-color)' }}
+                    >
+                        Friends
+                    </Button>
+                </Tooltip>
+            );
+        }
+
+        if (user.hasPendingRequest) {
+            if (user.friendRequestStatus === 'sent') {
+                return (
+                    <Tooltip title="Friend Request Sent">
+                        <Button
+                            type="text"
+                            icon={<ClockCircleOutlined />}
+                            disabled
+                            style={{ color: 'var(--text-color-secondary)' }}
+                        >
+                            Request Sent
+                        </Button>
+                    </Tooltip>
+                );
+            } else {
+                return (
+                    <Tooltip title="Accept Friend Request">
+                        <Button
+                            type="text"
+                            icon={<CheckOutlined />}
+                            style={{ color: 'var(--primary-color)' }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                // TODO: Add accept request functionality
+                            }}
+                        >
+                            Accept Request
+                        </Button>
+                    </Tooltip>
+                );
+            }
+        }
+
+        return (
+            <Tooltip title="Send Friend Request">
+                <Button
+                    type="text"
+                    icon={<UserAddOutlined />}
+                    onClick={handleSendRequest}
+                    loading={loading}
+                    style={{ color: 'var(--primary-color)' }}
+                >
+                    Add Friend
+                </Button>
+            </Tooltip>
+        );
+    };
+
     return (
         <Card
             size="small"
@@ -51,17 +115,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onSendFriendRequest, loading 
                         Profile
                     </Button>
                 </Tooltip>,
-                <Tooltip title="Send Friend Request">
-                    <Button
-                        type="text"
-                        icon={<UserAddOutlined />}
-                        onClick={handleSendRequest}
-                        loading={loading}
-                        style={{ color: 'var(--primary-color)' }}
-                    >
-                        Add Friend
-                    </Button>
-                </Tooltip>
+                getFriendActionButton()
             ]}
         >
             <Card.Meta

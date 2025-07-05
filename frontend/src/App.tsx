@@ -29,7 +29,6 @@ const App: React.FC = () => {
     // 验证当前认证状态
     setTimeout(() => {
       if (!isUserAuthenticated()) {
-        console.log('🔧 Invalid authentication state detected, cleaning up...');
         dispatch(logout());
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');

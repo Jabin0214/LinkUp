@@ -34,7 +34,7 @@ namespace Models
         public bool IsActive { get; set; } = true;
 
         // Navigation properties
-        public virtual ICollection<SkillBoard> SkillBoards { get; set; } = new List<SkillBoard>();
+        public virtual SkillBoard? SkillBoard { get; set; }
     }
 
     public class LoginRequest

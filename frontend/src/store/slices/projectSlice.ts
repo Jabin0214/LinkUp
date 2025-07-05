@@ -4,8 +4,7 @@ import projectService, {
     CreateProjectRequest,
     UpdateProjectRequest,
     JoinProjectRequest,
-    ProjectSearchQuery,
-    ProjectSearchResponse
+    ProjectSearchQuery
 } from '../../Services/ProjectService';
 
 interface ProjectState {

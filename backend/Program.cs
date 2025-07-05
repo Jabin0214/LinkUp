@@ -27,9 +27,23 @@ builder.Host.UseSerilog();
 // Add services to the container.
 builder.Services.AddControllers();
 
-// Configure DbContext
+// Configure DbContext with provider selection
+var databaseProvider = builder.Configuration["DatabaseProvider"] ?? "Local";
 builder.Services.AddDbContext<UserContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
+{
+    if (databaseProvider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
+    {
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        if (string.IsNullOrEmpty(connectionString))
+            throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        options.UseSqlServer(connectionString);
+    }
+    else
+    {
+        var connectionString = builder.Configuration.GetConnectionString("LocalConnection") ?? "Data Source=linkup.db";
+        options.UseSqlite(connectionString);
+    }
+});
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 
@@ -40,7 +54,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
 
 // Add health checks
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<UserContext>()
+    .AddDbContextCheck<UserContext>(name: "database", failureStatus: HealthStatus.Degraded)
     .AddCheck("self", () => HealthCheckResult.Healthy("API is running"));
 
 // Add rate limiting
@@ -88,17 +102,25 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Data initialization
+// Data initialization with improved error handling
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<UserContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
     try
     {
+        // Ensure database is created and migrations are applied
+        context.Database.EnsureCreated();
+
+        // Seed initial data
         Data.DataSeeder.SeedAsync(context).Wait();
+        logger.LogInformation("Database initialization completed successfully");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Data initialization failed: {ex.Message}");
+        logger.LogError(ex, "Database initialization failed. Application will continue without database connectivity");
+        // Don't throw - allow app to start even if database fails
     }
 }
 

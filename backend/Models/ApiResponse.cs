@@ -50,7 +50,7 @@ namespace Models
             return response;
         }
 
-        public static ApiResponse ErrorResponse(string message, List<string>? errors = null)
+        public static new ApiResponse ErrorResponse(string message, List<string>? errors = null)
         {
             var response = new ApiResponse();
             response.Success = false;
@@ -59,7 +59,7 @@ namespace Models
             return response;
         }
 
-        public static ApiResponse ErrorResponse(string message, string error)
+        public static new ApiResponse ErrorResponse(string message, string error)
         {
             var response = new ApiResponse();
             response.Success = false;

@@ -17,6 +17,7 @@ namespace Data
         public DbSet<Models.ProjectMember> ProjectMembers { get; set; } = default!;
         public DbSet<Models.Friend> Friends { get; set; } = default!;
         public DbSet<Models.FriendRequest> FriendRequests { get; set; } = default!;
+        public DbSet<Models.Message> Messages { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -219,6 +220,35 @@ namespace Data
                 entity.HasIndex(e => e.UserId);
                 entity.HasIndex(e => e.Role);
                 entity.HasIndex(e => e.JoinedAt);
+            });
+
+            // Message configuration
+            modelBuilder.Entity<Models.Message>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Content).IsRequired().HasMaxLength(1000);
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(e => e.IsRead).HasDefaultValue(false);
+
+                // Foreign key relationships
+                entity.HasOne(e => e.Sender)
+                    .WithMany()
+                    .HasForeignKey(e => e.SenderId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Receiver)
+                    .WithMany()
+                    .HasForeignKey(e => e.ReceiverId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Indexes for performance
+                entity.HasIndex(e => e.SenderId);
+                entity.HasIndex(e => e.ReceiverId);
+                entity.HasIndex(e => e.CreatedAt);
+                entity.HasIndex(e => e.IsRead);
+                entity.HasIndex(e => new { e.SenderId, e.ReceiverId });
+                entity.HasIndex(e => new { e.ReceiverId, e.IsRead });
             });
         }
     }

@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
+    "@microsoft/signalr": "^8.0.7",
     "@reduxjs/toolkit": "^2.8.2",
     "@types/node": "^16.18.97",
     "@types/react": "^18.3.2",

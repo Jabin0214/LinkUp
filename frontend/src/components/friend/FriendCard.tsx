@@ -5,7 +5,8 @@ import {
     BankOutlined,
     ClockCircleOutlined,
     MoreOutlined,
-    UserDeleteOutlined
+    UserDeleteOutlined,
+    MessageOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { FriendInfo } from '../../Services/FriendService';
@@ -33,6 +34,10 @@ const FriendCard: React.FC<FriendCardProps> = ({
         onRemoveFriend?.(friend.id);
     };
 
+        const handleStartChat = () => {
+        navigate(`/dashboard/chat?userId=${friend.id}&userName=${encodeURIComponent(`${friend.firstName} ${friend.lastName}`)}`);
+    };
+
     const formatFriendSince = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', {
@@ -42,6 +47,12 @@ const FriendCard: React.FC<FriendCardProps> = ({
     };
 
     const moreMenuItems = [
+        {
+            key: 'chat',
+            label: 'Start Chat',
+            icon: <MessageOutlined />,
+            onClick: handleStartChat
+        },
         {
             key: 'remove',
             label: 'Remove Friend',
@@ -70,6 +81,16 @@ const FriendCard: React.FC<FriendCardProps> = ({
                         style={{ color: 'var(--text-color)' }}
                     >
                         Profile
+                    </Button>
+                </Tooltip>,
+                <Tooltip title="Start Chat">
+                    <Button
+                        type="text"
+                        icon={<MessageOutlined />}
+                        onClick={handleStartChat}
+                        style={{ color: 'var(--primary-color)' }}
+                    >
+                        Chat
                     </Button>
                 </Tooltip>,
                 <Dropdown menu={{ items: moreMenuItems }} trigger={['click']}>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Avatar, Dropdown, Space, Button } from 'antd';
-import { UserOutlined, SettingOutlined, DashboardOutlined, LogoutOutlined, MenuOutlined, CodeOutlined, ProjectOutlined, TeamOutlined, UserAddOutlined } from '@ant-design/icons';
+import { UserOutlined, SettingOutlined, DashboardOutlined, LogoutOutlined, MenuOutlined, CodeOutlined, ProjectOutlined, TeamOutlined, UserAddOutlined, MessageOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
 import UserSettingsPanel from '../user/UserSettingsPanel';
@@ -14,6 +14,7 @@ import MyProjectsPage from '../../pages/MyProjectsPage';
 import DiscoverUsersPage from '../../pages/DiscoverUsersPage';
 import FriendsPage from '../../pages/FriendsPage';
 import UserProfilePage from '../../pages/UserProfilePage';
+import ChatPage from '../../pages/ChatPage';
 import ThemeSwitcher from '../theme/ThemeSwitcher';
 
 const { Header, Sider, Content } = Layout;
@@ -53,6 +54,12 @@ const ROUTE_CONFIG = {
         icon: <TeamOutlined />,
         label: 'Friends',
         component: <FriendsPage />
+    },
+    chat: {
+        path: '/dashboard/chat',
+        icon: <MessageOutlined />,
+        label: 'Messages',
+        component: <ChatPage />
     },
     skillboard: {
         path: '/dashboard/skillboard',
@@ -225,6 +232,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onLogout }) => {
                         <Route path="my-projects" element={<MyProjectsPage />} />
                         <Route path="discover" element={<DiscoverUsersPage />} />
                         <Route path="friends" element={<FriendsPage />} />
+                        <Route path="chat" element={<ChatPage />} />
                         <Route path="user/:id" element={<UserProfilePage />} />
                         <Route path="skillboard" element={<SkillBoardPage />} />
                         <Route path="skillboard/edit" element={<SkillBoardEditPage />} />

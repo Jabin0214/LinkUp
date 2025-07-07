@@ -76,6 +76,46 @@ code {
   display: flex !important;
 }
 
+/* 响应式隐藏工具类 */
+.hidden-xs {
+  display: none !important;
+}
+
+@media (min-width: 576px) {
+  .hidden-xs {
+    display: inline !important;
+  }
+}
+
+/* FriendCard 响应式样式 */
+.friend-avatar {
+  transition: all 0.3s ease;
+}
+
+.friend-card .ant-card-body {
+  transition: padding 0.3s ease;
+}
+
+.friend-name {
+  transition: font-size 0.3s ease;
+}
+
+@media (max-width: 576px) {
+  .friend-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 16px !important;
+  }
+  
+  .friend-card .ant-card-body {
+    padding: 12px !important;
+  }
+  
+  .friend-name {
+    font-size: 14px !important;
+  }
+}
+
 @media (max-width: 767px) {
   .d-mobile-none {
     display: none !important;

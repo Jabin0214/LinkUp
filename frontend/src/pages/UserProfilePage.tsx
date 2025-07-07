@@ -237,6 +237,14 @@ const UserProfilePage: React.FC = () => {
 
                             <Space size={12}>
                                 {getFriendshipStatusButton()}
+                                <Button
+                                    type="default"
+                                    icon={<UserOutlined />}
+                                    onClick={() => navigate(`/dashboard/chat?userId=${profile.id}&userName=${encodeURIComponent(`${profile.firstName} ${profile.lastName}`)}`)}
+                                    style={{ marginLeft: 8 }}
+                                >
+                                    Chat
+                                </Button>
                             </Space>
                         </Space>
                     </Card>

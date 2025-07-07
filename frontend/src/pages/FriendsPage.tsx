@@ -234,49 +234,18 @@ const FriendsPage: React.FC = () => {
         }
     }, [token, activeTab, isAuthenticated]);
 
-    return (
-        <div style={{
-            padding: '24px',
-            color: 'var(--text-color)',
-            backgroundColor: 'var(--body-background)',
-            minHeight: '100vh'
-        }}>
-            <div style={{ marginBottom: '24px' }}>
-                <Title level={2} style={{
-                    color: 'var(--text-color)',
-                    marginBottom: '8px',
-                    display: 'flex',
-                    alignItems: 'center'
-                }}>
-                    <TeamOutlined style={{ marginRight: '12px', color: 'var(--primary-color)' }} />
-                    Friends
-                </Title>
-                <Text type="secondary" style={{
-                    fontSize: '16px',
-                    color: 'var(--text-color-secondary)'
-                }}>
-                    Manage your connections and friend requests
-                </Text>
-            </div>
-
-            <Tabs
-                activeKey={activeTab}
-                onChange={handleTabChange}
-                size="large"
-                style={{
-                    marginBottom: '24px',
-                    color: 'var(--text-color)'
-                }}
-            >
-                <TabPane
-                    tab={
-                        <span style={{ color: 'var(--text-color)' }}>
-                            <TeamOutlined style={{ color: 'var(--text-color)' }} />
-                            My Friends ({friendsTotalCount})
-                        </span>
-                    }
-                    key="friends"
-                >
+    // Tab items for the new Tabs API
+    const tabItems = [
+        {
+            key: 'friends',
+            label: (
+                <span style={{ color: 'var(--text-color)' }}>
+                    <TeamOutlined style={{ color: 'var(--text-color)' }} />
+                    My Friends ({friendsTotalCount})
+                </span>
+            ),
+            children: (
+                <>
                     {/* Friends Search */}
                     <Card style={{
                         marginBottom: '24px',
@@ -292,7 +261,7 @@ const FriendsPage: React.FC = () => {
                                     onPressEnter={(e) => handleFriendsSearch((e.target as HTMLInputElement).value)}
                                     onChange={(e) => {
                                         if (!e.target.value) {
-                                            handleFriendsSearch(''); // 当清空输入框时立即搜索
+                                            handleFriendsSearch('');
                                         }
                                     }}
                                     onBlur={(e) => handleFriendsSearch(e.target.value)}
@@ -309,7 +278,6 @@ const FriendsPage: React.FC = () => {
                             </Col>
                         </Row>
                     </Card>
-
                     {/* Friends List */}
                     <Spin spinning={friendsLoading}>
                         {friends.length === 0 && !friendsLoading ? (
@@ -338,7 +306,6 @@ const FriendsPage: React.FC = () => {
                             </Row>
                         )}
                     </Spin>
-
                     {/* Friends Pagination */}
                     {Math.ceil(friendsTotalCount / pageSize) > 1 && (
                         <div style={{
@@ -362,101 +329,137 @@ const FriendsPage: React.FC = () => {
                             />
                         </div>
                     )}
-                </TabPane>
+                </>
+            )
+        },
+        {
+            key: 'requests',
+            label: (
+                <span style={{ color: 'var(--text-color)' }}>
+                    <InboxOutlined style={{ color: 'var(--text-color)' }} />
+                    Requests ({receivedRequests.length})
+                </span>
+            ),
+            children: (
+                <Spin spinning={requestsLoading}>
+                    <Row gutter={[24, 24]}>
+                        {/* Received Requests */}
+                        <Col xs={24} lg={12}>
+                            <Card
+                                title={
+                                    <span style={{ color: 'var(--text-color)' }}>
+                                        <UserAddOutlined style={{
+                                            marginRight: '8px',
+                                            color: 'var(--text-color)'
+                                        }} />
+                                        Received Requests ({receivedRequests.length})
+                                    </span>
+                                }
+                                style={{
+                                    background: 'var(--card-background)',
+                                    borderColor: 'var(--border-color)'
+                                }}
+                            >
+                                {receivedRequests.length === 0 ? (
+                                    <Empty
+                                        description="No pending requests"
+                                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                        style={{ padding: '24px' }}
+                                    />
+                                ) : (
+                                    <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                                        {receivedRequests.map(request => (
+                                            <div key={request.id} style={{ marginBottom: '16px' }}>
+                                                <FriendRequestCard
+                                                    request={request}
+                                                    onAccept={(id) => handleRespondToRequest(id, 'accept')}
+                                                    onReject={(id) => handleRespondToRequest(id, 'reject')}
+                                                    loading={respondingRequest === request.id}
+                                                    type="received"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </Card>
+                        </Col>
+                        {/* Sent Requests */}
+                        <Col xs={24} lg={12}>
+                            <Card
+                                title={
+                                    <span style={{ color: 'var(--text-color)' }}>
+                                        <InboxOutlined style={{
+                                            marginRight: '8px',
+                                            color: 'var(--text-color)'
+                                        }} />
+                                        Sent Requests ({sentRequests.length})
+                                    </span>
+                                }
+                                style={{
+                                    background: 'var(--card-background)',
+                                    borderColor: 'var(--border-color)'
+                                }}
+                            >
+                                {sentRequests.length === 0 ? (
+                                    <Empty
+                                        description="No sent requests"
+                                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                        style={{ padding: '24px' }}
+                                    />
+                                ) : (
+                                    <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                                        {sentRequests.map(request => (
+                                            <div key={request.id} style={{ marginBottom: '16px' }}>
+                                                <FriendRequestCard
+                                                    request={request}
+                                                    type="sent"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </Card>
+                        </Col>
+                    </Row>
+                </Spin>
+            )
+        }
+    ];
 
-                <TabPane
-                    tab={
-                        <span style={{ color: 'var(--text-color)' }}>
-                            <InboxOutlined style={{ color: 'var(--text-color)' }} />
-                            Requests ({receivedRequests.length})
-                        </span>
-                    }
-                    key="requests"
-                >
-                    <Spin spinning={requestsLoading}>
-                        <Row gutter={[24, 24]}>
-                            {/* Received Requests */}
-                            <Col xs={24} lg={12}>
-                                <Card
-                                    title={
-                                        <span style={{ color: 'var(--text-color)' }}>
-                                            <UserAddOutlined style={{
-                                                marginRight: '8px',
-                                                color: 'var(--text-color)'
-                                            }} />
-                                            Received Requests ({receivedRequests.length})
-                                        </span>
-                                    }
-                                    style={{
-                                        background: 'var(--card-background)',
-                                        borderColor: 'var(--border-color)'
-                                    }}
-                                >
-                                    {receivedRequests.length === 0 ? (
-                                        <Empty
-                                            description="No pending requests"
-                                            image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                            style={{ padding: '24px' }}
-                                        />
-                                    ) : (
-                                        <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
-                                            {receivedRequests.map(request => (
-                                                <div key={request.id} style={{ marginBottom: '16px' }}>
-                                                    <FriendRequestCard
-                                                        request={request}
-                                                        onAccept={(id) => handleRespondToRequest(id, 'accept')}
-                                                        onReject={(id) => handleRespondToRequest(id, 'reject')}
-                                                        loading={respondingRequest === request.id}
-                                                        type="received"
-                                                    />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </Card>
-                            </Col>
-
-                            {/* Sent Requests */}
-                            <Col xs={24} lg={12}>
-                                <Card
-                                    title={
-                                        <span style={{ color: 'var(--text-color)' }}>
-                                            <InboxOutlined style={{
-                                                marginRight: '8px',
-                                                color: 'var(--text-color)'
-                                            }} />
-                                            Sent Requests ({sentRequests.length})
-                                        </span>
-                                    }
-                                    style={{
-                                        background: 'var(--card-background)',
-                                        borderColor: 'var(--border-color)'
-                                    }}
-                                >
-                                    {sentRequests.length === 0 ? (
-                                        <Empty
-                                            description="No sent requests"
-                                            image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                            style={{ padding: '24px' }}
-                                        />
-                                    ) : (
-                                        <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
-                                            {sentRequests.map(request => (
-                                                <div key={request.id} style={{ marginBottom: '16px' }}>
-                                                    <FriendRequestCard
-                                                        request={request}
-                                                        type="sent"
-                                                    />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </Card>
-                            </Col>
-                        </Row>
-                    </Spin>
-                </TabPane>
-            </Tabs>
+    return (
+        <div style={{
+            padding: '24px',
+            color: 'var(--text-color)',
+            backgroundColor: 'var(--body-background)',
+            minHeight: '100vh'
+        }}>
+            <div style={{ marginBottom: '24px' }}>
+                <Title level={2} style={{
+                    color: 'var(--text-color)',
+                    marginBottom: '8px',
+                    display: 'flex',
+                    alignItems: 'center'
+                }}>
+                    <TeamOutlined style={{ marginRight: '12px', color: 'var(--primary-color)' }} />
+                    Friends
+                </Title>
+                <Text type="secondary" style={{
+                    fontSize: '16px',
+                    color: 'var(--text-color-secondary)'
+                }}>
+                    Manage your connections and friend requests
+                </Text>
+            </div>
+            <Tabs
+                activeKey={activeTab}
+                onChange={handleTabChange}
+                size="large"
+                style={{
+                    marginBottom: '24px',
+                    color: 'var(--text-color)'
+                }}
+                items={tabItems}
+            />
         </div>
     );
 };

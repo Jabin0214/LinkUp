@@ -27,22 +27,13 @@ builder.Host.UseSerilog();
 // Add services to the container.
 builder.Services.AddControllers();
 
-// Configure DbContext with provider selection
-var databaseProvider = builder.Configuration["DatabaseProvider"] ?? "Local";
+// Configure DbContext
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrEmpty(connectionString))
+    throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<UserContext>(options =>
 {
-    if (databaseProvider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
-    {
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-        if (string.IsNullOrEmpty(connectionString))
-            throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-        options.UseSqlServer(connectionString);
-    }
-    else
-    {
-        var connectionString = builder.Configuration.GetConnectionString("LocalConnection") ?? "Data Source=linkup.db";
-        options.UseSqlite(connectionString);
-    }
+    options.UseSqlServer(connectionString);
 });
 
 builder.Services.AddScoped<IAuthService, AuthService>();

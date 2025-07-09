@@ -712,3 +712,4 @@ azure-settings.json
 .sh 
 *.sh
 # End of https://www.toptal.com/developers/gitignore/api/reactnative,dotnetcore,visualstudio,visualstudiocodebackend/docker-run.sh
+backend/docker-run.sh

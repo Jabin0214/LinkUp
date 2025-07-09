@@ -1,6 +1,5 @@
-import axios from 'axios';
-
-const API_URL = 'http://localhost:5006/api';
+import { API_CONFIG } from '../config/api';
+import HttpClient from '../utils/httpClient';
 
 export interface LoginRequest {
     username: string;
@@ -105,30 +104,39 @@ export interface SearchUsersResponse {
 }
 
 export async function login(data: LoginRequest): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/auth/login`, data);
-    return response.data;
+    return await HttpClient.post<AuthResponse>(
+        API_CONFIG.ENDPOINTS.AUTH.LOGIN,
+        data
+    );
 }
 
 export async function register(data: RegisterRequest): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/auth/register`, data);
-    return response.data;
+    return await HttpClient.post<AuthResponse>(
+        API_CONFIG.ENDPOINTS.AUTH.REGISTER,
+        data
+    );
 }
 
 export async function changePassword(data: ChangePasswordRequest, token: string): Promise<void> {
-    await axios.post(`${API_URL}/auth/change-password`, data, {
-        headers: { Authorization: `Bearer ${token}` },
-    });
+    await HttpClient.postWithAuth<void>(
+        API_CONFIG.ENDPOINTS.AUTH.CHANGE_PASSWORD,
+        data,
+        token
+    );
 }
 
 export async function getCurrentUser(token: string) {
-    const response = await axios.get(`${API_URL}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data;
+    return await HttpClient.getWithAuth(
+        API_CONFIG.ENDPOINTS.AUTH.ME,
+        token
+    );
 }
 
 export async function logout(refreshToken: string) {
-    await axios.post(`${API_URL}/auth/logout`, { refreshToken });
+    await HttpClient.post(
+        API_CONFIG.ENDPOINTS.AUTH.LOGOUT,
+        { refreshToken }
+    );
 }
 
 // Discover users with filters
@@ -141,11 +149,11 @@ export async function discoverUsers(
         search?: string;
     } = {}
 ): Promise<DiscoverUsersResponse> {
-    const response = await axios.get(`${API_URL}/User/discover`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params
-    });
-    return response.data;
+    return await HttpClient.getWithAuth<DiscoverUsersResponse>(
+        API_CONFIG.ENDPOINTS.USER.DISCOVER,
+        token,
+        { params }
+    );
 }
 
 // Get user public profile
@@ -153,10 +161,10 @@ export async function getUserProfile(
     token: string,
     userId: number
 ): Promise<UserPublicProfile> {
-    const response = await axios.get(`${API_URL}/User/${userId}/profile`, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-    return response.data;
+    return await HttpClient.getWithAuth<UserPublicProfile>(
+        API_CONFIG.ENDPOINTS.USER.PROFILE(userId),
+        token
+    );
 }
 
 // Get universities list
@@ -164,11 +172,11 @@ export async function getUniversities(
     token: string,
     search?: string
 ): Promise<University[]> {
-    const response = await axios.get(`${API_URL}/User/universities`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { search }
-    });
-    return response.data;
+    return await HttpClient.getWithAuth<University[]>(
+        API_CONFIG.ENDPOINTS.USER.UNIVERSITIES,
+        token,
+        { params: { search } }
+    );
 }
 
 // Search users
@@ -177,9 +185,9 @@ export async function searchUsers(
     query: string,
     limit?: number
 ): Promise<SearchUsersResponse> {
-    const response = await axios.get(`${API_URL}/User/search`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { query, limit }
-    });
-    return response.data;
+    return await HttpClient.getWithAuth<SearchUsersResponse>(
+        API_CONFIG.ENDPOINTS.USER.SEARCH,
+        token,
+        { params: { query, limit } }
+    );
 } 

@@ -1,4 +1,5 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5006/api';
+import { API_CONFIG } from '../config/api';
+import HttpClient from '../utils/httpClient';
 
 // Types
 export interface Project {
@@ -145,179 +146,115 @@ export const COMMON_SKILLS = [
 ] as const;
 
 class ProjectService {
-    private getAuthToken(): string | null {
-        return localStorage.getItem('token');
-    }
-
-    private getHeaders(): HeadersInit {
-        const token = this.getAuthToken();
-        const headers: HeadersInit = {
-            'Content-Type': 'application/json',
-        };
-
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        return headers;
-    }
-
     // Get all projects with search filters
     async getProjects(query: ProjectSearchQuery = {}): Promise<ProjectSearchResponse> {
-        const searchParams = new URLSearchParams();
+        const params: Record<string, any> = {};
+        
+        if (query.keyword) params.keyword = query.keyword;
+        if (query.category) params.category = query.category;
+        if (query.status) params.status = query.status;
+        if (query.requiredSkills) params.requiredSkills = query.requiredSkills;
+        if (query.page) params.page = query.page;
+        if (query.pageSize) params.pageSize = query.pageSize;
 
-        if (query.keyword) searchParams.append('keyword', query.keyword);
-        if (query.category) searchParams.append('category', query.category);
-        if (query.status) searchParams.append('status', query.status);
-        if (query.requiredSkills) {
-            query.requiredSkills.forEach(skill => searchParams.append('requiredSkills', skill));
-        }
-        if (query.page) searchParams.append('page', query.page.toString());
-        if (query.pageSize) searchParams.append('pageSize', query.pageSize.toString());
-
-        const url = `${API_BASE_URL}/project${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: this.getHeaders(),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return await response.json();
+        return await HttpClient.get<ProjectSearchResponse>(
+            API_CONFIG.ENDPOINTS.PROJECT.BASE,
+            { params }
+        );
     }
 
     // Get current user's projects
     async getMyProjects(): Promise<Project[]> {
-        const response = await fetch(`${API_BASE_URL}/project/my`, {
-            method: 'GET',
-            headers: this.getHeaders(),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return await response.json();
+        return await HttpClient.get<Project[]>(
+            API_CONFIG.ENDPOINTS.PROJECT.MY
+        );
     }
 
     // Get project by ID
     async getProject(id: number): Promise<Project> {
-        const response = await fetch(`${API_BASE_URL}/project/${id}`, {
-            method: 'GET',
-            headers: this.getHeaders(),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return await response.json();
+        return await HttpClient.get<Project>(
+            API_CONFIG.ENDPOINTS.PROJECT.DETAIL(id)
+        );
     }
 
     // Create new project
     async createProject(projectData: CreateProjectRequest): Promise<Project> {
-        const token = this.getAuthToken();
-
+        const token = localStorage.getItem('token');
+        
         if (!token) {
             throw new Error('You must be logged in to create a project');
         }
 
-        const response = await fetch(`${API_BASE_URL}/project`, {
-            method: 'POST',
-            headers: this.getHeaders(),
-            body: JSON.stringify(projectData),
-        });
-
-        if (!response.ok) {
-            if (response.status === 401) {
-                throw new Error('Authentication failed. Please login again');
-            }
-
-            let errorMessage = `HTTP error! status: ${response.status}`;
-            try {
-                const errorData = await response.json();
-                errorMessage = errorData.message || errorMessage;
-            } catch (e) {
-                // Response might not be JSON
-            }
-
-            throw new Error(errorMessage);
-        }
-
-        return await response.json();
+        return await HttpClient.postWithAuth<Project>(
+            API_CONFIG.ENDPOINTS.PROJECT.BASE,
+            projectData,
+            token
+        );
     }
 
     // Update project
     async updateProject(id: number, projectData: UpdateProjectRequest): Promise<Project> {
-        const response = await fetch(`${API_BASE_URL}/project/${id}`, {
-            method: 'PUT',
-            headers: this.getHeaders(),
-            body: JSON.stringify(projectData),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            throw new Error('You must be logged in to update a project');
         }
 
-        return await response.json();
+        return await HttpClient.putWithAuth<Project>(
+            API_CONFIG.ENDPOINTS.PROJECT.DETAIL(id),
+            projectData,
+            token
+        );
     }
 
     // Delete project
     async deleteProject(id: number): Promise<void> {
-        const response = await fetch(`${API_BASE_URL}/project/${id}`, {
-            method: 'DELETE',
-            headers: this.getHeaders(),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            throw new Error('You must be logged in to delete a project');
         }
+
+        await HttpClient.deleteWithAuth<void>(
+            API_CONFIG.ENDPOINTS.PROJECT.DETAIL(id),
+            token
+        );
     }
 
     // Join project
     async joinProject(id: number, joinData: JoinProjectRequest = {}): Promise<void> {
-        const response = await fetch(`${API_BASE_URL}/project/${id}/join`, {
-            method: 'POST',
-            headers: this.getHeaders(),
-            body: JSON.stringify(joinData),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            throw new Error('You must be logged in to join a project');
         }
+
+        await HttpClient.postWithAuth<void>(
+            API_CONFIG.ENDPOINTS.PROJECT.JOIN(id),
+            joinData,
+            token
+        );
     }
 
     // Leave project
     async leaveProject(id: number): Promise<void> {
-        const response = await fetch(`${API_BASE_URL}/project/${id}/leave`, {
-            method: 'DELETE',
-            headers: this.getHeaders(),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            throw new Error('You must be logged in to leave a project');
         }
+
+        await HttpClient.deleteWithAuth<void>(
+            API_CONFIG.ENDPOINTS.PROJECT.LEAVE(id),
+            token
+        );
     }
 
     // Get project categories
     async getCategories(): Promise<string[]> {
-        const response = await fetch(`${API_BASE_URL}/project/categories`, {
-            method: 'GET',
-            headers: this.getHeaders(),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return await response.json();
+        return await HttpClient.get<string[]>(
+            API_CONFIG.ENDPOINTS.PROJECT.CATEGORIES
+        );
     }
 }
 

@@ -69,7 +69,7 @@ export const useSignalR = ({
             const { HubConnectionBuilder, HttpTransportType } = await import('@microsoft/signalr');
 
             const connection = new HubConnectionBuilder()
-                .withUrl(`${process.env.REACT_APP_API_URL || 'http://localhost:5006'}/chatHub?access_token=${token}`, {
+                .withUrl(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/chatHub?access_token=${token}`, {
                     transport: HttpTransportType.WebSockets
                 })
                 .withAutomaticReconnect()

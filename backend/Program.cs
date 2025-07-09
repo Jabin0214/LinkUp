@@ -12,28 +12,46 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Caching.Memory;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Serilog
-Log.Logger = new LoggerConfiguration()
-    .Enrich.FromLogContext()
-    .WriteTo.Console()
-    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
-    .CreateLogger();
+// Configure Serilog - 生产环境只记录到控制台
+if (builder.Environment.IsProduction())
+{
+    Log.Logger = new LoggerConfiguration()
+        .Enrich.FromLogContext()
+        .WriteTo.Console()
+        .CreateLogger();
+}
+else
+{
+    Log.Logger = new LoggerConfiguration()
+        .Enrich.FromLogContext()
+        .WriteTo.Console()
+        .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7)
+        .CreateLogger();
+}
 
 builder.Host.UseSerilog();
 
 // Add services to the container.
 builder.Services.AddControllers();
 
-// Configure DbContext
+// Configure DbContext with connection pooling
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrEmpty(connectionString))
     throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
 builder.Services.AddDbContext<UserContext>(options =>
 {
-    options.UseSqlServer(connectionString);
+    options.UseSqlServer(connectionString, sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorNumbersToAdd: null);
+    });
 });
 
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -42,15 +60,22 @@ builder.Services.AddScoped<IMessageService, MessageService>();
 // Add FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
 
-// API versioning will be added in future versions
-
 // Add health checks
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<UserContext>(name: "database", failureStatus: HealthStatus.Degraded)
     .AddCheck("self", () => HealthCheckResult.Healthy("API is running"));
 
 // Add rate limiting
-builder.Services.AddMemoryCache();
+builder.Services.AddMemoryCache(options =>
+{
+    // 配置内存缓存限制
+    var cacheConfig = builder.Configuration.GetSection("MemoryCache");
+    if (cacheConfig.Exists())
+    {
+        options.CompactionPercentage = cacheConfig.GetValue<double?>("CompactionPercentage") ?? 0.25;
+    }
+});
+
 builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimit"));
 builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
 builder.Services.AddInMemoryRateLimiting();
@@ -109,8 +134,24 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add SignalR
-builder.Services.AddSignalR();
+// Add SignalR with optimized configuration
+builder.Services.AddSignalR(options =>
+{
+    var signalRConfig = builder.Configuration.GetSection("SignalR");
+    if (signalRConfig.Exists())
+    {
+        options.ClientTimeoutInterval = TimeSpan.FromSeconds(signalRConfig.GetValue<int>("ClientTimeoutInterval"));
+        options.KeepAliveInterval = TimeSpan.FromSeconds(signalRConfig.GetValue<int>("KeepAliveInterval"));
+        options.EnableDetailedErrors = signalRConfig.GetValue<bool>("EnableDetailedErrors");
+    }
+    else
+    {
+        // 默认优化配置
+        options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+        options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+        options.EnableDetailedErrors = false;
+    }
+});
 
 var app = builder.Build();
 

@@ -1,6 +1,5 @@
-import axios from 'axios';
-
-const API_URL = 'http://localhost:5006/api/skillboard';
+import { API_CONFIG } from '../config/api';
+import HttpClient from '../utils/httpClient';
 
 export interface SkillItemDto {
     id?: number;
@@ -43,39 +42,43 @@ export interface UpdateSkillBoardRequest {
 
 // 获取当前用户的技能板
 export async function getMySkillBoard(token: string): Promise<SkillBoardResponse> {
-    const response = await axios.get(API_URL, {
-        headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data;
+    return await HttpClient.getWithAuth<SkillBoardResponse>(
+        API_CONFIG.ENDPOINTS.SKILLBOARD.BASE,
+        token
+    );
 }
 
 // 根据用户ID获取技能板（公开访问）
 export async function getSkillBoardByUserId(userId: number): Promise<SkillBoardResponse> {
-    const response = await axios.get(`${API_URL}/user/${userId}`);
-    return response.data;
+    return await HttpClient.get<SkillBoardResponse>(
+        API_CONFIG.ENDPOINTS.SKILLBOARD.BY_USER(userId)
+    );
 }
 
 // 创建技能板
 export async function createSkillBoard(data: CreateSkillBoardRequest, token: string): Promise<SkillBoardResponse> {
-    const response = await axios.post(API_URL, data, {
-        headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data;
+    return await HttpClient.postWithAuth<SkillBoardResponse>(
+        API_CONFIG.ENDPOINTS.SKILLBOARD.BASE,
+        data,
+        token
+    );
 }
 
 // 更新技能板
 export async function updateSkillBoard(data: UpdateSkillBoardRequest, token: string): Promise<SkillBoardResponse> {
-    const response = await axios.put(API_URL, data, {
-        headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data;
+    return await HttpClient.putWithAuth<SkillBoardResponse>(
+        API_CONFIG.ENDPOINTS.SKILLBOARD.BASE,
+        data,
+        token
+    );
 }
 
 // 删除技能板
 export async function deleteSkillBoard(token: string): Promise<void> {
-    await axios.delete(API_URL, {
-        headers: { Authorization: `Bearer ${token}` },
-    });
+    await HttpClient.deleteWithAuth<void>(
+        API_CONFIG.ENDPOINTS.SKILLBOARD.BASE,
+        token
+    );
 }
 
 // Skill level options

@@ -138,8 +138,7 @@ namespace Controllers
             if (user != null)
             {
                 skillBoard = await _context.SkillBoards
-                    .Include(s => s.Skills)
-                    .Include(s => s.Links)
+                    .Include(s => s.Items)
                     .FirstOrDefaultAsync(s => s.UserId == id);
             }
 
@@ -183,16 +182,22 @@ namespace Controllers
                 {
                     Introduction = skillBoard.Introduction,
                     Direction = skillBoard.Direction,
-                    Skills = skillBoard.Skills.OrderBy(s => s.Order).Select(s => new SkillItemInfo
-                    {
-                        Language = s.Language,
-                        Level = s.Level
-                    }).ToList(),
-                    Links = skillBoard.Links.OrderBy(l => l.Order).Select(l => new LinkItemInfo
-                    {
-                        Title = l.Title,
-                        Url = l.Url
-                    }).ToList()
+                    Skills = skillBoard.Items
+                        .Where(i => i.Type == "skill")
+                        .OrderBy(i => i.Order)
+                        .Select(s => new SkillItemInfo
+                        {
+                            Language = s.Content,
+                            Level = s.Level ?? ""
+                        }).ToList(),
+                    Links = skillBoard.Items
+                        .Where(i => i.Type == "link")
+                        .OrderBy(i => i.Order)
+                        .Select(l => new LinkItemInfo
+                        {
+                            Title = l.Content,
+                            Url = l.Url ?? ""
+                        }).ToList()
                 };
             }
 

@@ -26,8 +26,7 @@ namespace Controllers
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
             var skillBoard = await _context.SkillBoards
-                .Include(sb => sb.Skills.OrderBy(s => s.Order))
-                .Include(sb => sb.Links.OrderBy(l => l.Order))
+                .Include(sb => sb.Items.OrderBy(i => i.Order))
                 .FirstOrDefaultAsync(sb => sb.UserId == userId);
 
             if (skillBoard == null)
@@ -43,20 +42,26 @@ namespace Controllers
                 Direction = skillBoard.Direction,
                 CreatedAt = skillBoard.CreatedAt,
                 UpdatedAt = skillBoard.UpdatedAt,
-                Skills = skillBoard.Skills.Select(s => new SkillItemDto
-                {
-                    Id = s.Id,
-                    Language = s.Language,
-                    Level = s.Level,
-                    Order = s.Order
-                }).ToList(),
-                Links = skillBoard.Links.Select(l => new LinkItemDto
-                {
-                    Id = l.Id,
-                    Title = l.Title,
-                    Url = l.Url,
-                    Order = l.Order
-                }).ToList()
+                Skills = skillBoard.Items
+                    .Where(i => i.Type == "skill")
+                    .OrderBy(i => i.Order)
+                    .Select(s => new SkillItemDto
+                    {
+                        Id = s.Id,
+                        Language = s.Content,
+                        Level = s.Level ?? "",
+                        Order = s.Order
+                    }).ToList(),
+                Links = skillBoard.Items
+                    .Where(i => i.Type == "link")
+                    .OrderBy(i => i.Order)
+                    .Select(l => new LinkItemDto
+                    {
+                        Id = l.Id,
+                        Title = l.Content,
+                        Url = l.Url ?? "",
+                        Order = l.Order
+                    }).ToList()
             };
 
             return Ok(response);
@@ -68,8 +73,7 @@ namespace Controllers
         public async Task<ActionResult<SkillBoardResponse>> GetSkillBoardByUserId(int userId)
         {
             var skillBoard = await _context.SkillBoards
-                .Include(sb => sb.Skills.OrderBy(s => s.Order))
-                .Include(sb => sb.Links.OrderBy(l => l.Order))
+                .Include(sb => sb.Items.OrderBy(i => i.Order))
                 .FirstOrDefaultAsync(sb => sb.UserId == userId);
 
             if (skillBoard == null)
@@ -85,20 +89,26 @@ namespace Controllers
                 Direction = skillBoard.Direction,
                 CreatedAt = skillBoard.CreatedAt,
                 UpdatedAt = skillBoard.UpdatedAt,
-                Skills = skillBoard.Skills.Select(s => new SkillItemDto
-                {
-                    Id = s.Id,
-                    Language = s.Language,
-                    Level = s.Level,
-                    Order = s.Order
-                }).ToList(),
-                Links = skillBoard.Links.Select(l => new LinkItemDto
-                {
-                    Id = l.Id,
-                    Title = l.Title,
-                    Url = l.Url,
-                    Order = l.Order
-                }).ToList()
+                Skills = skillBoard.Items
+                    .Where(i => i.Type == "skill")
+                    .OrderBy(i => i.Order)
+                    .Select(s => new SkillItemDto
+                    {
+                        Id = s.Id,
+                        Language = s.Content,
+                        Level = s.Level ?? "",
+                        Order = s.Order
+                    }).ToList(),
+                Links = skillBoard.Items
+                    .Where(i => i.Type == "link")
+                    .OrderBy(i => i.Order)
+                    .Select(l => new LinkItemDto
+                    {
+                        Id = l.Id,
+                        Title = l.Content,
+                        Url = l.Url ?? "",
+                        Order = l.Order
+                    }).ToList()
             };
 
             return Ok(response);
@@ -131,40 +141,53 @@ namespace Controllers
             _context.SkillBoards.Add(skillBoard);
             await _context.SaveChangesAsync();
 
-            // 添加技能项
-            if (request.Skills.Any())
+            // 创建技能板项目列表
+            var items = new List<SkillBoardItem>();
+
+            // 处理新的Items属性（优先）
+            if (request.Items.Any())
             {
-                var skills = request.Skills.Select((skill, index) => new SkillItem
+                items.AddRange(request.Items.Select((item, index) => new SkillBoardItem
                 {
                     SkillBoardId = skillBoard.Id,
-                    Language = skill.Language,
+                    Type = item.Type,
+                    Content = item.Content,
+                    Level = item.Level,
+                    Url = item.Url,
+                    Order = item.Order > 0 ? item.Order : index
+                }));
+            }
+            else
+            {
+                // 向后兼容：处理旧的Skills和Links属性
+                items.AddRange(request.Skills.Select((skill, index) => new SkillBoardItem
+                {
+                    SkillBoardId = skillBoard.Id,
+                    Type = "skill",
+                    Content = skill.Language,
                     Level = skill.Level,
                     Order = skill.Order > 0 ? skill.Order : index
-                }).ToList();
+                }));
 
-                _context.SkillItems.AddRange(skills);
-            }
-
-            // 添加链接项
-            if (request.Links.Any())
-            {
-                var links = request.Links.Select((link, index) => new LinkItem
+                items.AddRange(request.Links.Select((link, index) => new SkillBoardItem
                 {
                     SkillBoardId = skillBoard.Id,
-                    Title = link.Title,
+                    Type = "link",
+                    Content = link.Title,
                     Url = link.Url,
-                    Order = link.Order > 0 ? link.Order : index
-                }).ToList();
-
-                _context.LinkItems.AddRange(links);
+                    Order = link.Order > 0 ? link.Order : (request.Skills.Count + index)
+                }));
             }
 
-            await _context.SaveChangesAsync();
+            if (items.Any())
+            {
+                _context.SkillBoardItems.AddRange(items);
+                await _context.SaveChangesAsync();
+            }
 
             // 重新获取包含关联数据的技能板
             var createdSkillBoard = await _context.SkillBoards
-                .Include(sb => sb.Skills.OrderBy(s => s.Order))
-                .Include(sb => sb.Links.OrderBy(l => l.Order))
+                .Include(sb => sb.Items.OrderBy(i => i.Order))
                 .FirstAsync(sb => sb.Id == skillBoard.Id);
 
             var response = new SkillBoardResponse
@@ -175,20 +198,26 @@ namespace Controllers
                 Direction = createdSkillBoard.Direction,
                 CreatedAt = createdSkillBoard.CreatedAt,
                 UpdatedAt = createdSkillBoard.UpdatedAt,
-                Skills = createdSkillBoard.Skills.Select(s => new SkillItemDto
-                {
-                    Id = s.Id,
-                    Language = s.Language,
-                    Level = s.Level,
-                    Order = s.Order
-                }).ToList(),
-                Links = createdSkillBoard.Links.Select(l => new LinkItemDto
-                {
-                    Id = l.Id,
-                    Title = l.Title,
-                    Url = l.Url,
-                    Order = l.Order
-                }).ToList()
+                Skills = createdSkillBoard.Items
+                    .Where(i => i.Type == "skill")
+                    .OrderBy(i => i.Order)
+                    .Select(s => new SkillItemDto
+                    {
+                        Id = s.Id,
+                        Language = s.Content,
+                        Level = s.Level ?? "",
+                        Order = s.Order
+                    }).ToList(),
+                Links = createdSkillBoard.Items
+                    .Where(i => i.Type == "link")
+                    .OrderBy(i => i.Order)
+                    .Select(l => new LinkItemDto
+                    {
+                        Id = l.Id,
+                        Title = l.Content,
+                        Url = l.Url ?? "",
+                        Order = l.Order
+                    }).ToList()
             };
 
             return CreatedAtAction(nameof(GetSkillBoard), response);
@@ -201,8 +230,7 @@ namespace Controllers
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
             var skillBoard = await _context.SkillBoards
-                .Include(sb => sb.Skills)
-                .Include(sb => sb.Links)
+                .Include(sb => sb.Items)
                 .FirstOrDefaultAsync(sb => sb.UserId == userId);
 
             if (skillBoard == null)
@@ -215,44 +243,57 @@ namespace Controllers
             skillBoard.Direction = request.Direction;
             skillBoard.UpdatedAt = DateTime.UtcNow;
 
-            // 删除现有的技能和链接
-            _context.SkillItems.RemoveRange(skillBoard.Skills);
-            _context.LinkItems.RemoveRange(skillBoard.Links);
+            // 删除现有的所有项目
+            _context.SkillBoardItems.RemoveRange(skillBoard.Items);
 
-            // 添加新的技能项
-            if (request.Skills.Any())
+            // 创建新的项目列表
+            var items = new List<SkillBoardItem>();
+
+            // 处理新的Items属性（优先）
+            if (request.Items.Any())
             {
-                var skills = request.Skills.Select((skill, index) => new SkillItem
+                items.AddRange(request.Items.Select((item, index) => new SkillBoardItem
                 {
                     SkillBoardId = skillBoard.Id,
-                    Language = skill.Language,
+                    Type = item.Type,
+                    Content = item.Content,
+                    Level = item.Level,
+                    Url = item.Url,
+                    Order = item.Order > 0 ? item.Order : index
+                }));
+            }
+            else
+            {
+                // 向后兼容：处理旧的Skills和Links属性
+                items.AddRange(request.Skills.Select((skill, index) => new SkillBoardItem
+                {
+                    SkillBoardId = skillBoard.Id,
+                    Type = "skill",
+                    Content = skill.Language,
                     Level = skill.Level,
                     Order = skill.Order > 0 ? skill.Order : index
-                }).ToList();
+                }));
 
-                _context.SkillItems.AddRange(skills);
-            }
-
-            // 添加新的链接项
-            if (request.Links.Any())
-            {
-                var links = request.Links.Select((link, index) => new LinkItem
+                items.AddRange(request.Links.Select((link, index) => new SkillBoardItem
                 {
                     SkillBoardId = skillBoard.Id,
-                    Title = link.Title,
+                    Type = "link",
+                    Content = link.Title,
                     Url = link.Url,
-                    Order = link.Order > 0 ? link.Order : index
-                }).ToList();
+                    Order = link.Order > 0 ? link.Order : (request.Skills.Count + index)
+                }));
+            }
 
-                _context.LinkItems.AddRange(links);
+            if (items.Any())
+            {
+                _context.SkillBoardItems.AddRange(items);
             }
 
             await _context.SaveChangesAsync();
 
             // 重新获取更新后的数据
             var updatedSkillBoard = await _context.SkillBoards
-                .Include(sb => sb.Skills.OrderBy(s => s.Order))
-                .Include(sb => sb.Links.OrderBy(l => l.Order))
+                .Include(sb => sb.Items.OrderBy(i => i.Order))
                 .FirstAsync(sb => sb.Id == skillBoard.Id);
 
             var response = new SkillBoardResponse
@@ -263,20 +304,26 @@ namespace Controllers
                 Direction = updatedSkillBoard.Direction,
                 CreatedAt = updatedSkillBoard.CreatedAt,
                 UpdatedAt = updatedSkillBoard.UpdatedAt,
-                Skills = updatedSkillBoard.Skills.Select(s => new SkillItemDto
-                {
-                    Id = s.Id,
-                    Language = s.Language,
-                    Level = s.Level,
-                    Order = s.Order
-                }).ToList(),
-                Links = updatedSkillBoard.Links.Select(l => new LinkItemDto
-                {
-                    Id = l.Id,
-                    Title = l.Title,
-                    Url = l.Url,
-                    Order = l.Order
-                }).ToList()
+                Skills = updatedSkillBoard.Items
+                    .Where(i => i.Type == "skill")
+                    .OrderBy(i => i.Order)
+                    .Select(s => new SkillItemDto
+                    {
+                        Id = s.Id,
+                        Language = s.Content,
+                        Level = s.Level ?? "",
+                        Order = s.Order
+                    }).ToList(),
+                Links = updatedSkillBoard.Items
+                    .Where(i => i.Type == "link")
+                    .OrderBy(i => i.Order)
+                    .Select(l => new LinkItemDto
+                    {
+                        Id = l.Id,
+                        Title = l.Content,
+                        Url = l.Url ?? "",
+                        Order = l.Order
+                    }).ToList()
             };
 
             return Ok(response);

@@ -39,65 +39,40 @@ builder.Host.UseSerilog();
 // Add services to the container.
 builder.Services.AddControllers();
 
-// Configure DbContext with connection pooling
+// Configure DbContext with SQL Server
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-var useInMemoryDatabase = builder.Configuration.GetValue<bool>("UseInMemoryDatabase");
+if (string.IsNullOrEmpty(connectionString))
+    throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-if (useInMemoryDatabase)
+// 使用连接池减少连接开销
+builder.Services.AddDbContextPool<UserContext>(options =>
 {
-    // 开发环境使用内存数据库
-    builder.Services.AddDbContext<UserContext>(options =>
+    options.UseSqlServer(connectionString, sqlOptions =>
     {
-        options.UseInMemoryDatabase("LinkUpInMemoryDb");
-        if (builder.Environment.IsDevelopment())
-        {
-            options.EnableSensitiveDataLogging(true);
-            options.EnableDetailedErrors(true);
-        }
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorNumbersToAdd: null);
+
+        // 设置连接超时
+        sqlOptions.CommandTimeout(30);
     });
 
-    builder.Services.AddLogging(logging =>
+    // 根据环境配置日志
+    if (builder.Environment.IsProduction())
     {
-        logging.AddConsole();
-        logging.SetMinimumLevel(LogLevel.Information);
-    });
-}
-else
-{
-    // 生产环境使用SQL Server
-    if (string.IsNullOrEmpty(connectionString))
-        throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
-    // 优化：使用连接池减少连接开销
-    builder.Services.AddDbContextPool<UserContext>(options =>
+        options.EnableSensitiveDataLogging(false);
+        options.EnableDetailedErrors(false);
+    }
+    else
     {
-        options.UseSqlServer(connectionString, sqlOptions =>
-        {
-            sqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 3,
-                maxRetryDelay: TimeSpan.FromSeconds(5),
-                errorNumbersToAdd: null);
+        options.EnableSensitiveDataLogging(true);
+        options.EnableDetailedErrors(true);
+    }
 
-            // 优化：设置连接超时
-            sqlOptions.CommandTimeout(30);
-        });
-
-        // 生产环境禁用敏感数据日志
-        if (builder.Environment.IsProduction())
-        {
-            options.EnableSensitiveDataLogging(false);
-            options.EnableDetailedErrors(false);
-        }
-        else
-        {
-            options.EnableSensitiveDataLogging(true);
-            options.EnableDetailedErrors(true);
-        }
-
-        // 优化：配置查询跟踪行为
-        options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-    }, poolSize: 100); // 设置连接池大小
-}
+    // 优化：配置查询跟踪行为
+    options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+}, poolSize: 100); // 设置连接池大小
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMessageService, MessageService>();

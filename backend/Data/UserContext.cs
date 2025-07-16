@@ -11,8 +11,7 @@ namespace Data
 
         public DbSet<Models.User> Users { get; set; } = default!;
         public DbSet<Models.SkillBoard> SkillBoards { get; set; } = default!;
-        public DbSet<Models.SkillItem> SkillItems { get; set; } = default!;
-        public DbSet<Models.LinkItem> LinkItems { get; set; } = default!;
+        public DbSet<Models.SkillBoardItem> SkillBoardItems { get; set; } = default!;
         public DbSet<Models.Project> Projects { get; set; } = default!;
         public DbSet<Models.ProjectMember> ProjectMembers { get; set; } = default!;
         public DbSet<Models.Friend> Friends { get; set; } = default!;
@@ -125,37 +124,42 @@ namespace Data
                     .HasForeignKey<Models.SkillBoard>(e => e.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasMany(e => e.Skills)
-                    .WithOne(e => e.SkillBoard)
-                    .HasForeignKey(e => e.SkillBoardId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasMany(e => e.Links)
+                entity.HasMany(e => e.Items)
                     .WithOne(e => e.SkillBoard)
                     .HasForeignKey(e => e.SkillBoardId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // SkillItem配置
-            modelBuilder.Entity<Models.SkillItem>(entity =>
+            // SkillBoardItem配置 - 合并的技能和链接项目
+            modelBuilder.Entity<Models.SkillBoardItem>(entity =>
             {
                 entity.HasKey(e => e.Id);
 
-                entity.Property(e => e.Language).IsRequired().HasMaxLength(50);
-                entity.Property(e => e.Level).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.Type).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.Content).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.Level).HasMaxLength(20); // 可选，仅技能需要
+                entity.Property(e => e.Url).HasMaxLength(500); // 可选，仅链接需要
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
-                entity.HasIndex(e => new { e.SkillBoardId, e.Order });
-            });
+                // 复合索引：技能板ID + 类型 + 顺序
+                entity.HasIndex(e => new { e.SkillBoardId, e.Type, e.Order });
+                
+                // 单独索引：类型和创建时间
+                entity.HasIndex(e => e.Type);
+                entity.HasIndex(e => e.CreatedAt);
 
-            // LinkItem配置
-            modelBuilder.Entity<Models.LinkItem>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-
-                entity.Property(e => e.Title).IsRequired().HasMaxLength(50);
-                entity.Property(e => e.Url).IsRequired().HasMaxLength(500);
-
-                entity.HasIndex(e => new { e.SkillBoardId, e.Order });
+                // 配置表级约束
+                entity.ToTable(t =>
+                {
+                    // Type只能是 'skill' 或 'link'
+                    t.HasCheckConstraint("CK_SkillBoardItem_Type", "Type IN ('skill', 'link')");
+                    
+                    // 如果是技能，Level不能为空；如果是链接，Url不能为空
+                    t.HasCheckConstraint("CK_SkillBoardItem_SkillLevel", 
+                        "(Type = 'skill' AND Level IS NOT NULL) OR Type != 'skill'");
+                    t.HasCheckConstraint("CK_SkillBoardItem_LinkUrl", 
+                        "(Type = 'link' AND Url IS NOT NULL) OR Type != 'link'");
+                });
             });
 
             // Project configuration

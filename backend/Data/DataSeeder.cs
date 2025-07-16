@@ -11,13 +11,13 @@ namespace Data
         public static async Task SeedAsync(UserContext context)
         {
             // 检查是否已有数据
-            if (context.Users.Any() || context.Projects.Any())
+            if (context.Users.Any())
             {
                 Console.WriteLine("数据库已有数据，跳过数据初始化");
                 return;
             }
 
-            Console.WriteLine("开始插入示例数据...");
+            Console.WriteLine("开始插入完整的示例数据...");
 
             // 创建示例用户
             var users = new List<User>
@@ -76,13 +76,194 @@ namespace Data
                     university = "Oxford University",
                     CreatedAt = DateTime.UtcNow.AddDays(-10),
                     IsActive = true
+                },
+                new User
+                {
+                    Username = "frank_kim",
+                    Email = "frank@example.com",
+                    PasswordHash = HashPassword("password123"),
+                    FirstName = "Frank",
+                    LastName = "Kim",
+                    university = "Tokyo University",
+                    CreatedAt = DateTime.UtcNow.AddDays(-8),
+                    IsActive = true
+                },
+                new User
+                {
+                    Username = "grace_liu",
+                    Email = "grace@example.com",
+                    PasswordHash = HashPassword("password123"),
+                    FirstName = "Grace",
+                    LastName = "Liu",
+                    university = "Tsinghua University",
+                    CreatedAt = DateTime.UtcNow.AddDays(-6),
+                    IsActive = true
+                },
+                new User
+                {
+                    Username = "henry_brown",
+                    Email = "henry@example.com",
+                    PasswordHash = HashPassword("password123"),
+                    FirstName = "Henry",
+                    LastName = "Brown",
+                    university = "Cambridge University",
+                    CreatedAt = DateTime.UtcNow.AddDays(-5),
+                    IsActive = true
                 }
             };
 
             context.Users.AddRange(users);
             await context.SaveChangesAsync();
-
             Console.WriteLine($"插入了 {users.Count} 个用户");
+
+            // 创建技能板
+            var skillBoards = new List<SkillBoard>
+            {
+                new SkillBoard
+                {
+                    UserId = users[0].Id,
+                    Introduction = "Passionate AI/ML engineer with 3+ years of experience in building intelligent systems. I love creating solutions that make a real impact on people's lives.",
+                    Direction = "AI & Machine Learning",
+                    CreatedAt = DateTime.UtcNow.AddDays(-28),
+                    UpdatedAt = DateTime.UtcNow.AddDays(-2)
+                },
+                new SkillBoard
+                {
+                    UserId = users[1].Id,
+                    Introduction = "Full-stack developer focusing on scalable web applications. Always excited to learn new technologies and best practices.",
+                    Direction = "Web Development",
+                    CreatedAt = DateTime.UtcNow.AddDays(-23),
+                    UpdatedAt = DateTime.UtcNow.AddDays(-1)
+                },
+                new SkillBoard
+                {
+                    UserId = users[2].Id,
+                    Introduction = "Mobile app developer with a passion for creating beautiful, user-friendly experiences. Sustainability advocate.",
+                    Direction = "Mobile Development",
+                    CreatedAt = DateTime.UtcNow.AddDays(-18),
+                    UpdatedAt = DateTime.UtcNow.AddDays(-3)
+                },
+                new SkillBoard
+                {
+                    UserId = users[3].Id,
+                    Introduction = "Blockchain enthusiast and smart contract developer. Building the future of decentralized applications.",
+                    Direction = "Blockchain & Web3",
+                    CreatedAt = DateTime.UtcNow.AddDays(-13),
+                    UpdatedAt = DateTime.UtcNow.AddDays(-1)
+                },
+                new SkillBoard
+                {
+                    UserId = users[4].Id,
+                    Introduction = "Frontend developer with strong UX/UI design skills. I believe in creating inclusive and accessible digital experiences.",
+                    Direction = "Frontend & UX Design",
+                    CreatedAt = DateTime.UtcNow.AddDays(-8),
+                    UpdatedAt = DateTime.UtcNow.AddDays(-2)
+                },
+                new SkillBoard
+                {
+                    UserId = users[5].Id,
+                    Introduction = "Data scientist specializing in computer vision and deep learning. Love working with large datasets and finding hidden patterns.",
+                    Direction = "Data Science & CV",
+                    CreatedAt = DateTime.UtcNow.AddDays(-6),
+                    UpdatedAt = DateTime.UtcNow.AddDays(-1)
+                },
+                new SkillBoard
+                {
+                    UserId = users[6].Id,
+                    Introduction = "Backend engineer with expertise in microservices and cloud architecture. DevOps enthusiast.",
+                    Direction = "Backend & Cloud",
+                    CreatedAt = DateTime.UtcNow.AddDays(-4),
+                    UpdatedAt = DateTime.UtcNow.AddDays(-1)
+                },
+                new SkillBoard
+                {
+                    UserId = users[7].Id,
+                    Introduction = "Game developer and AR/VR specialist. Creating immersive experiences that blur the line between digital and reality.",
+                    Direction = "Game Development & AR/VR",
+                    CreatedAt = DateTime.UtcNow.AddDays(-3),
+                    UpdatedAt = DateTime.UtcNow.AddDays(-1)
+                }
+            };
+
+            context.SkillBoards.AddRange(skillBoards);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"插入了 {skillBoards.Count} 个技能板");
+
+            // 创建技能板项目
+            var skillBoardItems = new List<SkillBoardItem>
+            {
+                // Alice的技能 (AI/ML)
+                new SkillBoardItem { SkillBoardId = skillBoards[0].Id, Type = "skill", Content = "Python", Level = "Expert", Order = 1 },
+                new SkillBoardItem { SkillBoardId = skillBoards[0].Id, Type = "skill", Content = "TensorFlow", Level = "Proficient", Order = 2 },
+                new SkillBoardItem { SkillBoardId = skillBoards[0].Id, Type = "skill", Content = "PyTorch", Level = "Proficient", Order = 3 },
+                new SkillBoardItem { SkillBoardId = skillBoards[0].Id, Type = "skill", Content = "Machine Learning", Level = "Expert", Order = 4 },
+                new SkillBoardItem { SkillBoardId = skillBoards[0].Id, Type = "skill", Content = "Deep Learning", Level = "Proficient", Order = 5 },
+                new SkillBoardItem { SkillBoardId = skillBoards[0].Id, Type = "link", Content = "GitHub Profile", Url = "https://github.com/alice-chen", Order = 1 },
+                new SkillBoardItem { SkillBoardId = skillBoards[0].Id, Type = "link", Content = "LinkedIn", Url = "https://linkedin.com/in/alice-chen-ai", Order = 2 },
+                new SkillBoardItem { SkillBoardId = skillBoards[0].Id, Type = "link", Content = "Personal Blog", Url = "https://alice-ai-blog.com", Order = 3 },
+
+                // Bob的技能 (Web Dev)
+                new SkillBoardItem { SkillBoardId = skillBoards[1].Id, Type = "skill", Content = "JavaScript", Level = "Expert", Order = 1 },
+                new SkillBoardItem { SkillBoardId = skillBoards[1].Id, Type = "skill", Content = "React", Level = "Expert", Order = 2 },
+                new SkillBoardItem { SkillBoardId = skillBoards[1].Id, Type = "skill", Content = "Node.js", Level = "Proficient", Order = 3 },
+                new SkillBoardItem { SkillBoardId = skillBoards[1].Id, Type = "skill", Content = "TypeScript", Level = "Proficient", Order = 4 },
+                new SkillBoardItem { SkillBoardId = skillBoards[1].Id, Type = "skill", Content = "MongoDB", Level = "Familiar", Order = 5 },
+                new SkillBoardItem { SkillBoardId = skillBoards[1].Id, Type = "link", Content = "Portfolio Website", Url = "https://bob-smith-dev.com", Order = 1 },
+                new SkillBoardItem { SkillBoardId = skillBoards[1].Id, Type = "link", Content = "GitHub", Url = "https://github.com/bob-smith", Order = 2 },
+
+                // Carol的技能 (Mobile)
+                new SkillBoardItem { SkillBoardId = skillBoards[2].Id, Type = "skill", Content = "React Native", Level = "Expert", Order = 1 },
+                new SkillBoardItem { SkillBoardId = skillBoards[2].Id, Type = "skill", Content = "Flutter", Level = "Proficient", Order = 2 },
+                new SkillBoardItem { SkillBoardId = skillBoards[2].Id, Type = "skill", Content = "Swift", Level = "Familiar", Order = 3 },
+                new SkillBoardItem { SkillBoardId = skillBoards[2].Id, Type = "skill", Content = "UI/UX Design", Level = "Proficient", Order = 4 },
+                new SkillBoardItem { SkillBoardId = skillBoards[2].Id, Type = "link", Content = "App Store Apps", Url = "https://apps.apple.com/developer/carol-wang", Order = 1 },
+                new SkillBoardItem { SkillBoardId = skillBoards[2].Id, Type = "link", Content = "Dribbble", Url = "https://dribbble.com/carol-designs", Order = 2 },
+
+                // David的技能 (Blockchain)
+                new SkillBoardItem { SkillBoardId = skillBoards[3].Id, Type = "skill", Content = "Solidity", Level = "Expert", Order = 1 },
+                new SkillBoardItem { SkillBoardId = skillBoards[3].Id, Type = "skill", Content = "Web3.js", Level = "Proficient", Order = 2 },
+                new SkillBoardItem { SkillBoardId = skillBoards[3].Id, Type = "skill", Content = "Smart Contracts", Level = "Expert", Order = 3 },
+                new SkillBoardItem { SkillBoardId = skillBoards[3].Id, Type = "skill", Content = "Ethereum", Level = "Proficient", Order = 4 },
+                new SkillBoardItem { SkillBoardId = skillBoards[3].Id, Type = "link", Content = "DeFi Projects", Url = "https://github.com/david-blockchain", Order = 1 },
+                new SkillBoardItem { SkillBoardId = skillBoards[3].Id, Type = "link", Content = "Medium Articles", Url = "https://medium.com/@david-blockchain", Order = 2 },
+
+                // Emma的技能 (Frontend/UX)
+                new SkillBoardItem { SkillBoardId = skillBoards[4].Id, Type = "skill", Content = "Vue.js", Level = "Expert", Order = 1 },
+                new SkillBoardItem { SkillBoardId = skillBoards[4].Id, Type = "skill", Content = "CSS/SCSS", Level = "Expert", Order = 2 },
+                new SkillBoardItem { SkillBoardId = skillBoards[4].Id, Type = "skill", Content = "Figma", Level = "Proficient", Order = 3 },
+                new SkillBoardItem { SkillBoardId = skillBoards[4].Id, Type = "skill", Content = "User Research", Level = "Familiar", Order = 4 },
+                new SkillBoardItem { SkillBoardId = skillBoards[4].Id, Type = "link", Content = "Design Portfolio", Url = "https://emma-ux.design", Order = 1 },
+                new SkillBoardItem { SkillBoardId = skillBoards[4].Id, Type = "link", Content = "Behance", Url = "https://behance.net/emma-johnson", Order = 2 },
+
+                // Frank的技能 (Data Science)
+                new SkillBoardItem { SkillBoardId = skillBoards[5].Id, Type = "skill", Content = "Python", Level = "Expert", Order = 1 },
+                new SkillBoardItem { SkillBoardId = skillBoards[5].Id, Type = "skill", Content = "OpenCV", Level = "Proficient", Order = 2 },
+                new SkillBoardItem { SkillBoardId = skillBoards[5].Id, Type = "skill", Content = "Pandas", Level = "Expert", Order = 3 },
+                new SkillBoardItem { SkillBoardId = skillBoards[5].Id, Type = "skill", Content = "Computer Vision", Level = "Proficient", Order = 4 },
+                new SkillBoardItem { SkillBoardId = skillBoards[5].Id, Type = "link", Content = "Kaggle Profile", Url = "https://kaggle.com/frank-cv", Order = 1 },
+                new SkillBoardItem { SkillBoardId = skillBoards[5].Id, Type = "link", Content = "Research Papers", Url = "https://scholar.google.com/frank-kim", Order = 2 },
+
+                // Grace的技能 (Backend/Cloud)
+                new SkillBoardItem { SkillBoardId = skillBoards[6].Id, Type = "skill", Content = "Java", Level = "Expert", Order = 1 },
+                new SkillBoardItem { SkillBoardId = skillBoards[6].Id, Type = "skill", Content = "Spring Boot", Level = "Expert", Order = 2 },
+                new SkillBoardItem { SkillBoardId = skillBoards[6].Id, Type = "skill", Content = "AWS", Level = "Proficient", Order = 3 },
+                new SkillBoardItem { SkillBoardId = skillBoards[6].Id, Type = "skill", Content = "Docker", Level = "Proficient", Order = 4 },
+                new SkillBoardItem { SkillBoardId = skillBoards[6].Id, Type = "skill", Content = "Kubernetes", Level = "Familiar", Order = 5 },
+                new SkillBoardItem { SkillBoardId = skillBoards[6].Id, Type = "link", Content = "Tech Blog", Url = "https://grace-backend.blog", Order = 1 },
+                new SkillBoardItem { SkillBoardId = skillBoards[6].Id, Type = "link", Content = "AWS Certifications", Url = "https://aws.amazon.com/verification", Order = 2 },
+
+                // Henry的技能 (Game Dev/AR/VR)
+                new SkillBoardItem { SkillBoardId = skillBoards[7].Id, Type = "skill", Content = "Unity", Level = "Expert", Order = 1 },
+                new SkillBoardItem { SkillBoardId = skillBoards[7].Id, Type = "skill", Content = "C#", Level = "Expert", Order = 2 },
+                new SkillBoardItem { SkillBoardId = skillBoards[7].Id, Type = "skill", Content = "ARKit", Level = "Proficient", Order = 3 },
+                new SkillBoardItem { SkillBoardId = skillBoards[7].Id, Type = "skill", Content = "Unreal Engine", Level = "Familiar", Order = 4 },
+                new SkillBoardItem { SkillBoardId = skillBoards[7].Id, Type = "link", Content = "Game Portfolio", Url = "https://henry-games.com", Order = 1 },
+                new SkillBoardItem { SkillBoardId = skillBoards[7].Id, Type = "link", Content = "Unity Asset Store", Url = "https://assetstore.unity.com/publishers/henry", Order = 2 }
+            };
+
+            context.SkillBoardItems.AddRange(skillBoardItems);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"插入了 {skillBoardItems.Count} 个技能板项目");
 
             // 创建示例项目
             var projects = new List<Project>
@@ -166,14 +347,14 @@ namespace Data
                 {
                     Title = "AR Museum Experience",
                     Description = "Developing an augmented reality application that brings museum exhibits to life. Visitors can point their phones at artifacts to see interactive 3D models, historical recreations, and detailed information.",
-                    CreatorId = users[0].Id,
+                    CreatorId = users[7].Id,
                     Status = "InProgress",
                     Category = "Mobile App",
                     RequiredSkills = "Unity,C#,ARKit,ARCore,3D Modeling",
                     MaxMembers = 6,
                     StartDate = DateTime.UtcNow.AddDays(-7),
                     EndDate = DateTime.UtcNow.AddDays(75),
-                    ContactInfo = "alice@example.com | LinkedIn: alice-chen-ar",
+                    ContactInfo = "henry@example.com | LinkedIn: henry-ar-dev",
                     CreatedAt = DateTime.UtcNow.AddDays(-12),
                     UpdatedAt = DateTime.UtcNow.AddDays(-1)
                 },
@@ -181,67 +362,36 @@ namespace Data
                 {
                     Title = "Smart City Dashboard",
                     Description = "Building a comprehensive dashboard for city planners and residents to visualize traffic patterns, air quality, energy usage, and other urban metrics. Contributing to smarter, more sustainable cities.",
-                    CreatorId = users[1].Id,
+                    CreatorId = users[5].Id,
                     Status = "Recruiting",
                     Category = "Data Science",
                     RequiredSkills = "Python,Data Visualization,React,API Integration",
                     MaxMembers = 5,
                     StartDate = DateTime.UtcNow.AddDays(12),
                     EndDate = DateTime.UtcNow.AddDays(95),
-                    ContactInfo = "bob@example.com | GitHub: bob-smith-data",
+                    ContactInfo = "frank@example.com | GitHub: frank-data-viz",
                     CreatedAt = DateTime.UtcNow.AddDays(-2),
                     UpdatedAt = DateTime.UtcNow.AddDays(-2)
                 },
                 new Project
                 {
-                    Title = "Language Exchange Platform",
-                    Description = "Creating a platform where people can practice languages with native speakers through video calls, text chat, and interactive exercises. Perfect for international students and language enthusiasts.",
-                    CreatorId = users[2].Id,
+                    Title = "Microservices E-commerce Platform",
+                    Description = "Building a scalable e-commerce platform using microservices architecture. Focus on high availability, load balancing, and cloud-native technologies.",
+                    CreatorId = users[6].Id,
                     Status = "Recruiting",
-                    Category = "Web Development",
-                    RequiredSkills = "Angular,Node.js,WebRTC,Socket.io",
+                    Category = "Backend Development",
+                    RequiredSkills = "Java,Spring Boot,AWS,Docker,Kubernetes",
                     MaxMembers = 6,
                     StartDate = DateTime.UtcNow.AddDays(8),
                     EndDate = DateTime.UtcNow.AddDays(110),
-                    ContactInfo = "carol@example.com | Discord: carol_linguist#5678",
+                    ContactInfo = "grace@example.com | Discord: grace_backend#9876",
                     CreatedAt = DateTime.UtcNow.AddDays(-7),
                     UpdatedAt = DateTime.UtcNow.AddDays(-7)
-                },
-                new Project
-                {
-                    Title = "Fitness Gamification App",
-                    Description = "Turning fitness into a game! Users can complete challenges, earn rewards, compete with friends, and track their progress in a fun, engaging way. Looking for developers who are passionate about health and gaming.",
-                    CreatorId = users[3].Id,
-                    Status = "InProgress",
-                    Category = "Mobile App",
-                    RequiredSkills = "Flutter,Dart,Firebase,Gamification",
-                    MaxMembers = 4,
-                    StartDate = DateTime.UtcNow.AddDays(-10),
-                    EndDate = DateTime.UtcNow.AddDays(50),
-                    ContactInfo = "david@example.com | Strava: david_fitness_dev",
-                    CreatedAt = DateTime.UtcNow.AddDays(-15),
-                    UpdatedAt = DateTime.UtcNow.AddDays(-3)
-                },
-                new Project
-                {
-                    Title = "Open Source Code Editor",
-                    Description = "Contributing to an open-source code editor with advanced features like AI-powered code completion, collaborative editing, and plugin ecosystem. Great opportunity to contribute to the developer community.",
-                    CreatorId = users[4].Id,
-                    Status = "Recruiting",
-                    Category = "Open Source",
-                    RequiredSkills = "TypeScript,Electron,VSCode API,Git",
-                    MaxMembers = 8,
-                    StartDate = DateTime.UtcNow.AddDays(15),
-                    EndDate = DateTime.UtcNow.AddDays(150),
-                    ContactInfo = "emma@example.com | GitHub: emma-opensource",
-                    CreatedAt = DateTime.UtcNow.AddDays(-1),
-                    UpdatedAt = DateTime.UtcNow.AddDays(-1)
                 }
             };
 
             context.Projects.AddRange(projects);
             await context.SaveChangesAsync();
-
             Console.WriteLine($"插入了 {projects.Count} 个项目");
 
             // 创建项目成员关系
@@ -275,7 +425,7 @@ namespace Data
                 new ProjectMember
                 {
                     ProjectId = projects[0].Id,
-                    UserId = users[3].Id,
+                    UserId = users[5].Id,
                     Role = "Member",
                     JoinMessage = "Looking forward to working on the ML components.",
                     JoinedAt = DateTime.UtcNow.AddDays(-2)
@@ -287,7 +437,7 @@ namespace Data
                     ProjectId = projects[1].Id,
                     UserId = users[2].Id,
                     Role = "Member",
-                    JoinMessage = "Great idea! I can help with frontend development.",
+                    JoinMessage = "Great idea! I can help with mobile development.",
                     JoinedAt = DateTime.UtcNow.AddDays(-2)
                 },
                 new ProjectMember
@@ -295,7 +445,7 @@ namespace Data
                     ProjectId = projects[1].Id,
                     UserId = users[4].Id,
                     Role = "Member",
-                    JoinMessage = "Interested in the backend architecture.",
+                    JoinMessage = "Interested in the UX/UI design aspects.",
                     JoinedAt = DateTime.UtcNow.AddDays(-1)
                 },
 
@@ -305,7 +455,7 @@ namespace Data
                     ProjectId = projects[2].Id,
                     UserId = users[0].Id,
                     Role = "Member",
-                    JoinMessage = "Love the environmental focus! Happy to help.",
+                    JoinMessage = "Love the environmental focus! Happy to help with AI features.",
                     JoinedAt = DateTime.UtcNow.AddDays(-12)
                 },
                 new ProjectMember
@@ -315,14 +465,308 @@ namespace Data
                     Role = "Member",
                     JoinMessage = "Can contribute to UI/UX design.",
                     JoinedAt = DateTime.UtcNow.AddDays(-8)
+                },
+
+                // AR Museum Experience 项目的成员
+                new ProjectMember
+                {
+                    ProjectId = projects[5].Id,
+                    UserId = users[0].Id,
+                    Role = "Member",
+                    JoinMessage = "Exciting AR project! I can help with AI integration.",
+                    JoinedAt = DateTime.UtcNow.AddDays(-10)
+                },
+                new ProjectMember
+                {
+                    ProjectId = projects[5].Id,
+                    UserId = users[2].Id,
+                    Role = "Member",
+                    JoinMessage = "Would love to work on the mobile development aspects.",
+                    JoinedAt = DateTime.UtcNow.AddDays(-8)
+                },
+
+                // Microservices E-commerce 项目的成员
+                new ProjectMember
+                {
+                    ProjectId = projects[7].Id,
+                    UserId = users[1].Id,
+                    Role = "Member",
+                    JoinMessage = "Great architecture approach! I can help with frontend.",
+                    JoinedAt = DateTime.UtcNow.AddDays(-5)
+                },
+                new ProjectMember
+                {
+                    ProjectId = projects[7].Id,
+                    UserId = users[5].Id,
+                    Role = "Member",
+                    JoinMessage = "Interested in the data analytics part.",
+                    JoinedAt = DateTime.UtcNow.AddDays(-4)
                 }
             });
 
             context.ProjectMembers.AddRange(projectMembers);
             await context.SaveChangesAsync();
-
             Console.WriteLine($"插入了 {projectMembers.Count} 个项目成员关系");
-            Console.WriteLine("示例数据插入完成！");
+
+            // 创建好友关系
+            var friends = new List<Friend>
+            {
+                // Alice 和其他人的好友关系
+                new Friend { UserId = users[0].Id, FriendUserId = users[1].Id, CreatedAt = DateTime.UtcNow.AddDays(-20) },
+                new Friend { UserId = users[1].Id, FriendUserId = users[0].Id, CreatedAt = DateTime.UtcNow.AddDays(-20) },
+
+                new Friend { UserId = users[0].Id, FriendUserId = users[2].Id, CreatedAt = DateTime.UtcNow.AddDays(-15) },
+                new Friend { UserId = users[2].Id, FriendUserId = users[0].Id, CreatedAt = DateTime.UtcNow.AddDays(-15) },
+
+                new Friend { UserId = users[0].Id, FriendUserId = users[5].Id, CreatedAt = DateTime.UtcNow.AddDays(-10) },
+                new Friend { UserId = users[5].Id, FriendUserId = users[0].Id, CreatedAt = DateTime.UtcNow.AddDays(-10) },
+
+                // Bob 的好友关系
+                new Friend { UserId = users[1].Id, FriendUserId = users[3].Id, CreatedAt = DateTime.UtcNow.AddDays(-18) },
+                new Friend { UserId = users[3].Id, FriendUserId = users[1].Id, CreatedAt = DateTime.UtcNow.AddDays(-18) },
+
+                new Friend { UserId = users[1].Id, FriendUserId = users[4].Id, CreatedAt = DateTime.UtcNow.AddDays(-12) },
+                new Friend { UserId = users[4].Id, FriendUserId = users[1].Id, CreatedAt = DateTime.UtcNow.AddDays(-12) },
+
+                // Carol 的好友关系
+                new Friend { UserId = users[2].Id, FriendUserId = users[4].Id, CreatedAt = DateTime.UtcNow.AddDays(-14) },
+                new Friend { UserId = users[4].Id, FriendUserId = users[2].Id, CreatedAt = DateTime.UtcNow.AddDays(-14) },
+
+                new Friend { UserId = users[2].Id, FriendUserId = users[7].Id, CreatedAt = DateTime.UtcNow.AddDays(-8) },
+                new Friend { UserId = users[7].Id, FriendUserId = users[2].Id, CreatedAt = DateTime.UtcNow.AddDays(-8) },
+
+                // David 的好友关系
+                new Friend { UserId = users[3].Id, FriendUserId = users[6].Id, CreatedAt = DateTime.UtcNow.AddDays(-11) },
+                new Friend { UserId = users[6].Id, FriendUserId = users[3].Id, CreatedAt = DateTime.UtcNow.AddDays(-11) },
+
+                // Frank 和 Grace 的好友关系
+                new Friend { UserId = users[5].Id, FriendUserId = users[6].Id, CreatedAt = DateTime.UtcNow.AddDays(-6) },
+                new Friend { UserId = users[6].Id, FriendUserId = users[5].Id, CreatedAt = DateTime.UtcNow.AddDays(-6) },
+
+                // Emma 和 Henry 的好友关系
+                new Friend { UserId = users[4].Id, FriendUserId = users[7].Id, CreatedAt = DateTime.UtcNow.AddDays(-5) },
+                new Friend { UserId = users[7].Id, FriendUserId = users[4].Id, CreatedAt = DateTime.UtcNow.AddDays(-5) }
+            };
+
+            context.Friends.AddRange(friends);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"插入了 {friends.Count} 个好友关系");
+
+            // 创建好友请求
+            var friendRequests = new List<FriendRequest>
+            {
+                new FriendRequest
+                {
+                    SenderId = users[0].Id,
+                    ReceiverId = users[3].Id,
+                    Message = "Hi David! I saw your blockchain voting project and would love to connect. I think AI and blockchain could work well together!",
+                    Status = "Pending",
+                    CreatedAt = DateTime.UtcNow.AddDays(-2)
+                },
+                new FriendRequest
+                {
+                    SenderId = users[7].Id,
+                    ReceiverId = users[5].Id,
+                    Message = "Hey Frank! I'm working on AR visualization and think your CV expertise could be really valuable. Want to collaborate?",
+                    Status = "Pending",
+                    CreatedAt = DateTime.UtcNow.AddDays(-1)
+                },
+                new FriendRequest
+                {
+                    SenderId = users[6].Id,
+                    ReceiverId = users[1].Id,
+                    Message = "Hi Bob! I noticed you're into full-stack development. I could use some frontend help on my microservices project.",
+                    Status = "Pending",
+                    CreatedAt = DateTime.UtcNow.AddHours(-12)
+                },
+                new FriendRequest
+                {
+                    SenderId = users[3].Id,
+                    ReceiverId = users[4].Id,
+                    Message = "Hello Emma! Love your UX design work. I think good design is crucial for blockchain adoption. Let's connect!",
+                    Status = "Rejected",
+                    CreatedAt = DateTime.UtcNow.AddDays(-5),
+                    ResponsedAt = DateTime.UtcNow.AddDays(-4)
+                },
+                new FriendRequest
+                {
+                    SenderId = users[5].Id,
+                    ReceiverId = users[2].Id,
+                    Message = "Hi Carol! Your sustainability app is amazing. I'd love to contribute some data analysis features.",
+                    Status = "Accepted",
+                    CreatedAt = DateTime.UtcNow.AddDays(-9),
+                    ResponsedAt = DateTime.UtcNow.AddDays(-8)
+                }
+            };
+
+            context.FriendRequests.AddRange(friendRequests);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"插入了 {friendRequests.Count} 个好友请求");
+
+            // 创建消息
+            var messages = new List<Message>
+            {
+                // Alice 和 Bob 的对话
+                new Message
+                {
+                    SenderId = users[0].Id,
+                    ReceiverId = users[1].Id,
+                    Content = "Hey Bob! How's the campus social network project going?",
+                    CreatedAt = DateTime.UtcNow.AddDays(-3),
+                    IsRead = true,
+                    ReadAt = DateTime.UtcNow.AddDays(-3).AddHours(2)
+                },
+                new Message
+                {
+                    SenderId = users[1].Id,
+                    ReceiverId = users[0].Id,
+                    Content = "Hi Alice! It's going well, we just finished the user authentication system. Your AI study assistant sounds fascinating too!",
+                    CreatedAt = DateTime.UtcNow.AddDays(-3).AddHours(2),
+                    IsRead = true,
+                    ReadAt = DateTime.UtcNow.AddDays(-3).AddHours(3)
+                },
+                new Message
+                {
+                    SenderId = users[0].Id,
+                    ReceiverId = users[1].Id,
+                    Content = "Thanks! I think there could be some interesting collaboration opportunities between our projects. Maybe we could integrate study group features?",
+                    CreatedAt = DateTime.UtcNow.AddDays(-3).AddHours(3),
+                    IsRead = true,
+                    ReadAt = DateTime.UtcNow.AddDays(-2)
+                },
+                new Message
+                {
+                    SenderId = users[1].Id,
+                    ReceiverId = users[0].Id,
+                    Content = "That's a great idea! Let's schedule a call to discuss this further. Are you free this weekend?",
+                    CreatedAt = DateTime.UtcNow.AddDays(-2),
+                    IsRead = false
+                },
+
+                // Carol 和 Emma 的对话
+                new Message
+                {
+                    SenderId = users[2].Id,
+                    ReceiverId = users[4].Id,
+                    Content = "Emma, I love the UX mockups you shared! The sustainability tracker is looking amazing.",
+                    CreatedAt = DateTime.UtcNow.AddDays(-5),
+                    IsRead = true,
+                    ReadAt = DateTime.UtcNow.AddDays(-5).AddHours(1)
+                },
+                new Message
+                {
+                    SenderId = users[4].Id,
+                    ReceiverId = users[2].Id,
+                    Content = "Thank you Carol! I really enjoyed working on the user flow. The eco-friendly theme was inspiring to design for.",
+                    CreatedAt = DateTime.UtcNow.AddDays(-5).AddHours(1),
+                    IsRead = true,
+                    ReadAt = DateTime.UtcNow.AddDays(-4)
+                },
+                new Message
+                {
+                    SenderId = users[2].Id,
+                    ReceiverId = users[4].Id,
+                    Content = "Would you be interested in joining my mental health platform project as well? I think your design skills would be perfect for it.",
+                    CreatedAt = DateTime.UtcNow.AddDays(-4),
+                    IsRead = true,
+                    ReadAt = DateTime.UtcNow.AddDays(-4).AddHours(3)
+                },
+                new Message
+                {
+                    SenderId = users[4].Id,
+                    ReceiverId = users[2].Id,
+                    Content = "I'd love to! Mental health is such an important topic. Let's discuss the project requirements.",
+                    CreatedAt = DateTime.UtcNow.AddDays(-4).AddHours(3),
+                    IsRead = false
+                },
+
+                // Frank 和 Grace 的对话
+                new Message
+                {
+                    SenderId = users[5].Id,
+                    ReceiverId = users[6].Id,
+                    Content = "Grace, your microservices architecture looks solid! I'm particularly interested in the data pipeline design.",
+                    CreatedAt = DateTime.UtcNow.AddDays(-2),
+                    IsRead = true,
+                    ReadAt = DateTime.UtcNow.AddDays(-2).AddHours(4)
+                },
+                new Message
+                {
+                    SenderId = users[6].Id,
+                    ReceiverId = users[5].Id,
+                    Content = "Thanks Frank! I could really use your data science expertise for the analytics service. Want to collaborate?",
+                    CreatedAt = DateTime.UtcNow.AddDays(-2).AddHours(4),
+                    IsRead = true,
+                    ReadAt = DateTime.UtcNow.AddDays(-1)
+                },
+                new Message
+                {
+                    SenderId = users[5].Id,
+                    ReceiverId = users[6].Id,
+                    Content = "Absolutely! I just joined your project. Looking forward to working together.",
+                    CreatedAt = DateTime.UtcNow.AddDays(-1),
+                    IsRead = false
+                },
+
+                // David 和 Bob 的对话
+                new Message
+                {
+                    SenderId = users[3].Id,
+                    ReceiverId = users[1].Id,
+                    Content = "Bob, have you ever worked with blockchain integration in web apps?",
+                    CreatedAt = DateTime.UtcNow.AddHours(-8),
+                    IsRead = true,
+                    ReadAt = DateTime.UtcNow.AddHours(-6)
+                },
+                new Message
+                {
+                    SenderId = users[1].Id,
+                    ReceiverId = users[3].Id,
+                    Content = "Not extensively, but I'm really interested in learning! Your voting system project looks really cool.",
+                    CreatedAt = DateTime.UtcNow.AddHours(-6),
+                    IsRead = false
+                },
+
+                // Henry 和 Alice 的对话
+                new Message
+                {
+                    SenderId = users[7].Id,
+                    ReceiverId = users[0].Id,
+                    Content = "Alice, the AR museum project is coming along nicely! Thanks for helping with the AI image recognition features.",
+                    CreatedAt = DateTime.UtcNow.AddHours(-4),
+                    IsRead = false
+                }
+            };
+
+            context.Messages.AddRange(messages);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"插入了 {messages.Count} 条消息");
+
+            Console.WriteLine("======================================");
+            Console.WriteLine("完整示例数据插入完成！");
+            Console.WriteLine("======================================");
+            Console.WriteLine("用户登录信息：");
+            Console.WriteLine("======================================");
+            foreach (var user in users)
+            {
+                Console.WriteLine($"用户名: {user.Username}");
+                Console.WriteLine($"邮箱: {user.Email}");
+                Console.WriteLine($"密码: password123");
+                Console.WriteLine($"姓名: {user.FirstName} {user.LastName}");
+                Console.WriteLine($"大学: {user.university}");
+                Console.WriteLine("--------------------------------------");
+            }
+            Console.WriteLine("======================================");
+            Console.WriteLine("数据统计：");
+            Console.WriteLine($"• 用户: {users.Count}");
+            Console.WriteLine($"• 技能板: {skillBoards.Count}");
+            Console.WriteLine($"• 技能板项目: {skillBoardItems.Count}");
+            Console.WriteLine($"• 项目: {projects.Count}");
+            Console.WriteLine($"• 项目成员: {projectMembers.Count}");
+            Console.WriteLine($"• 好友关系: {friends.Count}");
+            Console.WriteLine($"• 好友请求: {friendRequests.Count}");
+            Console.WriteLine($"• 消息: {messages.Count}");
+            Console.WriteLine("======================================");
         }
 
         private static string HashPassword(string password)

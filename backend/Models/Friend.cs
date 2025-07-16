@@ -84,25 +84,7 @@ namespace Models
         public SkillBoardInfo? SkillBoard { get; set; }
     }
 
-    public class SkillBoardInfo
-    {
-        public string? Introduction { get; set; }
-        public string? Direction { get; set; }
-        public List<SkillItemInfo> Skills { get; set; } = new List<SkillItemInfo>();
-        public List<LinkItemInfo> Links { get; set; } = new List<LinkItemInfo>();
-    }
 
-    public class SkillItemInfo
-    {
-        public string Language { get; set; } = string.Empty;
-        public string Level { get; set; } = string.Empty;
-    }
-
-    public class LinkItemInfo
-    {
-        public string Title { get; set; } = string.Empty;
-        public string Url { get; set; } = string.Empty;
-    }
 
     public class SendFriendRequestDto
     {

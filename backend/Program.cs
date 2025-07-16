@@ -233,8 +233,6 @@ using (var scope = app.Services.CreateScope())
             }
         }
 
-        // Seed initial data
-        Data.DataSeeder.SeedAsync(context).Wait();
         logger.LogInformation("Database initialization completed successfully");
     }
     catch (Exception ex)

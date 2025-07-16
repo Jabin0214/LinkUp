@@ -66,7 +66,7 @@ docker rmi linkup-backend:jwt-auth # 删除镜像
 ### 测试登录
 ```bash
 curl -X POST -H "Content-Type: application/json" \
-  -d '{"username":"alice_chen","password":"password123"}' \
+  -d '{"username":"your_username","password":"your_password"}' \
   http://localhost:8080/api/Auth/login
 ```
 

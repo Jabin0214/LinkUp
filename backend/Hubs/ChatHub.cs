@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.Collections.Concurrent;
 
 namespace Hubs
 {
@@ -8,8 +9,12 @@ namespace Hubs
     public class ChatHub : Hub
     {
         // 使用ConcurrentDictionary避免线程安全问题
-        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, int> _userConnections = new();
-        private static readonly System.Collections.Concurrent.ConcurrentDictionary<int, HashSet<string>> _userConnectionIds = new();
+        private static readonly ConcurrentDictionary<string, int> _userConnections = new();
+        private static readonly ConcurrentDictionary<int, HashSet<string>> _userConnectionIds = new();
+
+        // 添加连接清理定时器
+        private static readonly Timer _cleanupTimer = new Timer(CleanupConnections, null,
+            TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
 
         public override async Task OnConnectedAsync()
         {
@@ -24,11 +29,15 @@ namespace Hubs
                     new HashSet<string> { connectionId },
                     (key, existing) =>
                     {
-                        existing.Add(connectionId);
+                        lock (existing)
+                        {
+                            existing.Add(connectionId);
+                        }
                         return existing;
                     });
 
-                await Clients.All.SendAsync("UserConnected", userId.Value);
+                // 优化：只通知真正需要的客户端
+                await Clients.Others.SendAsync("UserConnected", userId.Value);
             }
             await base.OnConnectedAsync();
         }
@@ -44,14 +53,21 @@ namespace Hubs
                 // 清理用户连接记录
                 if (_userConnectionIds.TryGetValue(userId.Value, out var connectionIds))
                 {
-                    connectionIds.Remove(connectionId);
-                    if (connectionIds.Count == 0)
+                    lock (connectionIds)
                     {
-                        _userConnectionIds.TryRemove(userId.Value, out _);
+                        connectionIds.Remove(connectionId);
+                        if (connectionIds.Count == 0)
+                        {
+                            _userConnectionIds.TryRemove(userId.Value, out _);
+                        }
                     }
                 }
 
-                await Clients.All.SendAsync("UserDisconnected", userId.Value);
+                // 检查用户是否完全离线
+                if (!_userConnectionIds.ContainsKey(userId.Value))
+                {
+                    await Clients.Others.SendAsync("UserDisconnected", userId.Value);
+                }
             }
             await base.OnDisconnectedAsync(exception);
         }
@@ -111,6 +127,46 @@ namespace Hubs
         public static int GetOnlineUserCount()
         {
             return _userConnectionIds.Count;
+        }
+
+        // 清理过期连接的方法
+        private static void CleanupConnections(object? state)
+        {
+            try
+            {
+                var toRemove = new List<string>();
+
+                foreach (var kvp in _userConnections)
+                {
+                    // 这里可以添加更复杂的清理逻辑
+                    // 例如检查连接的活跃时间等
+                }
+
+                foreach (var connectionId in toRemove)
+                {
+                    _userConnections.TryRemove(connectionId, out _);
+                }
+
+                // 清理空的用户连接集合
+                var usersToRemove = new List<int>();
+                foreach (var kvp in _userConnectionIds)
+                {
+                    if (kvp.Value.Count == 0)
+                    {
+                        usersToRemove.Add(kvp.Key);
+                    }
+                }
+
+                foreach (var userId in usersToRemove)
+                {
+                    _userConnectionIds.TryRemove(userId, out _);
+                }
+            }
+            catch (Exception ex)
+            {
+                // 日志记录清理错误
+                Console.WriteLine($"Connection cleanup error: {ex.Message}");
+            }
         }
     }
 }

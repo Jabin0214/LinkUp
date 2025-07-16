@@ -36,7 +36,7 @@ namespace Controllers
             {
                 return BadRequest(new ApiResponse { Success = false, Message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponse { Success = false, Message = "Failed to send message" });
             }
@@ -56,7 +56,7 @@ namespace Controllers
                 var messages = await _messageService.GetConversationAsync(currentUserId.Value, userId, page, pageSize);
                 return Ok(new ApiResponse { Success = true, Data = messages });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponse { Success = false, Message = "Failed to get conversation" });
             }
@@ -76,7 +76,7 @@ namespace Controllers
                 var conversations = await _messageService.GetConversationsAsync(currentUserId.Value, page, pageSize);
                 return Ok(new ApiResponse { Success = true, Data = conversations });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponse { Success = false, Message = "Failed to get conversations" });
             }
@@ -101,7 +101,7 @@ namespace Controllers
 
                 return Ok(new ApiResponse { Success = true, Message = "Message marked as read" });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponse { Success = false, Message = "Failed to mark message as read" });
             }
@@ -121,20 +121,10 @@ namespace Controllers
                 var count = await _messageService.GetUnreadCountAsync(currentUserId.Value);
                 return Ok(new ApiResponse { Success = true, Data = new { count } });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new ApiResponse { Success = false, Message = "Failed to get unread count" });
             }
-        }
-
-        private int? GetCurrentUserId()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
-            {
-                return userId;
-            }
-            return null;
         }
     }
 }

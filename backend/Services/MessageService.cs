@@ -100,42 +100,39 @@ namespace Services
         {
             try
             {
-                // 获取用户的所有对话，使用更简单的方法
-                var userMessages = await _context.Messages
+                // 优化：使用数据库聚合查询而不是加载所有消息到内存
+                var conversations = await _context.Messages
                     .Where(m => m.SenderId == userId || m.ReceiverId == userId)
-                    .Include(m => m.Sender)
-                    .Include(m => m.Receiver)
-                    .ToListAsync();
-
-                // 按对话分组
-                var conversationGroups = userMessages
                     .GroupBy(m => m.SenderId == userId ? m.ReceiverId : m.SenderId)
                     .Select(g => new
                     {
                         OtherUserId = g.Key,
-                        Messages = g.OrderByDescending(m => m.CreatedAt).ToList(),
+                        LastMessage = g.OrderByDescending(m => m.CreatedAt).First(),
                         UnreadCount = g.Count(m => m.ReceiverId == userId && !m.IsRead)
                     })
-                    .Where(g => g.Messages.Any())
-                    .OrderByDescending(g => g.Messages.First().CreatedAt)
+                    .OrderByDescending(g => g.LastMessage.CreatedAt)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
-                    .ToList();
+                    .ToListAsync();
 
                 var result = new List<ConversationDto>();
-                foreach (var conv in conversationGroups)
+
+                // 批量获取用户信息
+                var otherUserIds = conversations.Select(c => c.OtherUserId).ToList();
+                var users = await _context.Users
+                    .Where(u => otherUserIds.Contains(u.Id))
+                    .ToDictionaryAsync(u => u.Id, u => u);
+
+                foreach (var conv in conversations)
                 {
-                    var lastMessage = conv.Messages.First();
-                    var otherUser = lastMessage.SenderId == userId ? lastMessage.Receiver : lastMessage.Sender;
-                    
-                    if (otherUser != null)
+                    if (users.TryGetValue(conv.OtherUserId, out var otherUser))
                     {
                         result.Add(new ConversationDto
                         {
                             UserId = conv.OtherUserId,
                             UserName = otherUser.Username,
-                            LastMessage = lastMessage.Content,
-                            LastMessageTime = lastMessage.CreatedAt,
+                            LastMessage = conv.LastMessage.Content,
+                            LastMessageTime = conv.LastMessage.CreatedAt,
                             UnreadCount = conv.UnreadCount
                         });
                     }

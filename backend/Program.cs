@@ -13,6 +13,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,19 +41,63 @@ builder.Services.AddControllers();
 
 // Configure DbContext with connection pooling
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-if (string.IsNullOrEmpty(connectionString))
-    throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var useInMemoryDatabase = builder.Configuration.GetValue<bool>("UseInMemoryDatabase");
 
-builder.Services.AddDbContext<UserContext>(options =>
+if (useInMemoryDatabase)
 {
-    options.UseSqlServer(connectionString, sqlOptions =>
+    // 开发环境使用内存数据库
+    builder.Services.AddDbContext<UserContext>(options =>
     {
-        sqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 3,
-            maxRetryDelay: TimeSpan.FromSeconds(5),
-            errorNumbersToAdd: null);
+        options.UseInMemoryDatabase("LinkUpInMemoryDb");
+        if (builder.Environment.IsDevelopment())
+        {
+            options.EnableSensitiveDataLogging(true);
+            options.EnableDetailedErrors(true);
+        }
     });
-});
+
+    builder.Services.AddLogging(logging =>
+    {
+        logging.AddConsole();
+        logging.SetMinimumLevel(LogLevel.Information);
+    });
+}
+else
+{
+    // 生产环境使用SQL Server
+    if (string.IsNullOrEmpty(connectionString))
+        throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+    // 优化：使用连接池减少连接开销
+    builder.Services.AddDbContextPool<UserContext>(options =>
+    {
+        options.UseSqlServer(connectionString, sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 3,
+                maxRetryDelay: TimeSpan.FromSeconds(5),
+                errorNumbersToAdd: null);
+
+            // 优化：设置连接超时
+            sqlOptions.CommandTimeout(30);
+        });
+
+        // 生产环境禁用敏感数据日志
+        if (builder.Environment.IsProduction())
+        {
+            options.EnableSensitiveDataLogging(false);
+            options.EnableDetailedErrors(false);
+        }
+        else
+        {
+            options.EnableSensitiveDataLogging(true);
+            options.EnableDetailedErrors(true);
+        }
+
+        // 优化：配置查询跟踪行为
+        options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+    }, poolSize: 100); // 设置连接池大小
+}
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
@@ -132,7 +177,39 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "LinkUp API",
+        Version = "v1",
+    });
+
+    // 添加JWT Bearer认证配置
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 // Add SignalR with optimized configuration
 builder.Services.AddSignalR(options =>
@@ -160,11 +237,26 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<UserContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+    var isInMemoryDb = configuration.GetValue<bool>("UseInMemoryDatabase");
 
     try
     {
-        // Ensure database is created and migrations are applied
-        context.Database.EnsureCreated();
+        if (isInMemoryDb)
+        {
+            // 内存数据库：确保创建
+            context.Database.EnsureCreated();
+            logger.LogInformation("In-memory database initialized successfully");
+        }
+        else
+        {
+            // SQL Server：使用迁移
+            if (context.Database.GetPendingMigrations().Any())
+            {
+                logger.LogInformation("Applying pending migrations...");
+                context.Database.Migrate();
+            }
+        }
 
         // Seed initial data
         Data.DataSeeder.SeedAsync(context).Wait();
@@ -187,7 +279,7 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseIpRateLimiting();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI();

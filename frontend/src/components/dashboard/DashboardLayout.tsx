@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Avatar, Dropdown, Space, Button } from 'antd';
-import { UserOutlined, SettingOutlined, DashboardOutlined, LogoutOutlined, MenuOutlined, CodeOutlined, ProjectOutlined, TeamOutlined, UserAddOutlined, MessageOutlined } from '@ant-design/icons';
+import { UserOutlined, SettingOutlined, LogoutOutlined, MenuOutlined, CodeOutlined, ProjectOutlined, TeamOutlined, UserAddOutlined, MessageOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
 import UserSettingsPanel from '../user/UserSettingsPanel';
-import DashboardContent from './DashboardContent';
 import SkillBoardPage from '../../pages/SkillBoardPage';
 import SkillBoardEditPage from '../../pages/SkillBoardEditPage';
 import ProjectsPage from '../../pages/ProjectsPage';
@@ -25,12 +24,6 @@ interface DashboardLayoutProps {
 
 // 统一的路由配置
 const ROUTE_CONFIG = {
-    dashboard: {
-        path: '/dashboard/overview',
-        icon: <DashboardOutlined />,
-        label: 'Dashboard',
-        component: <DashboardContent />
-    },
     projects: {
         path: '/dashboard/projects',
         icon: <ProjectOutlined />,
@@ -85,11 +78,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onLogout }) => {
 
     const selectedKey = Object.entries(ROUTE_CONFIG).find(
         ([_, config]) => location.pathname === config.path
-    )?.[0] || 'dashboard';
+    )?.[0] || 'projects';
 
     useEffect(() => {
         if (location.pathname === '/dashboard' || location.pathname === '/dashboard/') {
-            navigate(ROUTE_CONFIG.dashboard.path, { replace: true });
+            navigate(ROUTE_CONFIG.projects.path, { replace: true });
         }
     }, [location.pathname, navigate]);
 
@@ -224,7 +217,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ onLogout }) => {
                     color: 'var(--text-color)'
                 }}>
                     <Routes>
-                        <Route path="overview" element={<DashboardContent />} />
                         <Route path="projects" element={<ProjectsPage />} />
                         <Route path="projects/create" element={<ProjectFormPage />} />
                         <Route path="projects/:id" element={<ProjectDetailPage />} />

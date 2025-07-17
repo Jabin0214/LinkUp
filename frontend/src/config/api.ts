@@ -1,7 +1,7 @@
 // API配置文件 - 统一管理所有API端点
 export const API_CONFIG = {
-    // 基础URL - 支持环境变量配置，默认为Docker容器
-    BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:8080/api',
+    // 基础URL - 支持环境变量配置，默认为本地开发环境
+    BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:5006/api',
 
     // 超时配置
     TIMEOUT: 30000, // 增加到30秒

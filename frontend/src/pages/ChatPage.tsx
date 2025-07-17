@@ -7,12 +7,29 @@ import ChatWindow from '../components/chat/ChatWindow';
 
 const { Title, Text } = Typography;
 
+// 移动端检测hook
+const useIsMobile = () => {
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth <= 768);
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    return isMobile;
+};
+
 const ChatPage: React.FC = () => {
     const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
     const [selectedUserName, setSelectedUserName] = useState<string>('');
     const [showMobileChat, setShowMobileChat] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
+    const isMobile = useIsMobile();
 
     // 从URL参数获取选中的用户ID
     useEffect(() => {
@@ -43,8 +60,19 @@ const ChatPage: React.FC = () => {
         navigate('/dashboard/chat', { replace: true });
     };
 
+    // 移动端添加更好的手势支持
+    useEffect(() => {
+        if (isMobile) {
+            // 禁用页面缩放
+            const viewport = document.querySelector('meta[name="viewport"]');
+            if (viewport) {
+                viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
+            }
+        }
+    }, [isMobile]);
+
     return (
-        <div className="dashboard-chat-container">
+        <div className={`dashboard-chat-container ${isMobile ? 'mobile' : 'desktop'}`}>
             {/* Desktop Layout */}
             <div className="chat-desktop-layout">
                 {/* Conversations Panel */}
@@ -92,6 +120,7 @@ const ChatPage: React.FC = () => {
                                         type="primary"
                                         icon={<UserOutlined />}
                                         onClick={() => navigate('/dashboard/friends')}
+                                        size={isMobile ? 'large' : 'middle'}
                                     >
                                         Go to Friends
                                     </Button>

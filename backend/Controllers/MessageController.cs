@@ -126,5 +126,40 @@ namespace Controllers
                 return StatusCode(500, new ApiResponse { Success = false, Message = "Failed to get unread count" });
             }
         }
+
+        [HttpGet("debug")]
+        public async Task<IActionResult> GetDebugInfo()
+        {
+            try
+            {
+                var currentUserId = GetCurrentUserId();
+                if (!currentUserId.HasValue)
+                {
+                    return Unauthorized(new ApiResponse { Success = false, Message = "Unauthorized" });
+                }
+
+                var messages = await _messageService.GetConversationAsync(currentUserId.Value, currentUserId.Value, 1, 100);
+                var conversations = await _messageService.GetConversationsAsync(currentUserId.Value);
+                var unreadCount = await _messageService.GetUnreadCountAsync(currentUserId.Value);
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Data = new
+                    {
+                        userId = currentUserId.Value,
+                        totalMessages = messages.Count,
+                        conversationsCount = conversations.Count,
+                        unreadCount = unreadCount,
+                        conversations = conversations,
+                        recentMessages = messages.Take(5)
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse { Success = false, Message = $"Debug failed: {ex.Message}" });
+            }
+        }
     }
 }

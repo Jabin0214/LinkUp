@@ -64,8 +64,9 @@ namespace Services
                 ReadAt = message.ReadAt
             };
 
-            // 通过SignalR发送实时消息给接收者
+            // 通过SignalR发送实时消息给接收者和发送者
             await _hubContext.Clients.User(receiverId.ToString()).SendAsync("ReceiveMessage", senderId, receiverId, content);
+            await _hubContext.Clients.User(senderId.ToString()).SendAsync("ReceiveMessage", senderId, receiverId, content);
 
             return messageDto;
         }
@@ -98,54 +99,47 @@ namespace Services
 
         public async Task<List<ConversationDto>> GetConversationsAsync(int userId, int page = 1, int pageSize = 20)
         {
-            try
+            // 使用更简单的查询方式避免EF Core的GroupBy限制
+            var allMessages = await _context.Messages
+                .Where(m => m.SenderId == userId || m.ReceiverId == userId)
+                .Include(m => m.Sender)
+                .Include(m => m.Receiver)
+                .OrderByDescending(m => m.CreatedAt)
+                .ToListAsync();
+
+            var conversationMap = new Dictionary<int, ConversationDto>();
+
+            foreach (var message in allMessages)
             {
-                // 优化：使用数据库聚合查询而不是加载所有消息到内存
-                var conversations = await _context.Messages
-                    .Where(m => m.SenderId == userId || m.ReceiverId == userId)
-                    .GroupBy(m => m.SenderId == userId ? m.ReceiverId : m.SenderId)
-                    .Select(g => new
-                    {
-                        OtherUserId = g.Key,
-                        LastMessage = g.OrderByDescending(m => m.CreatedAt).First(),
-                        UnreadCount = g.Count(m => m.ReceiverId == userId && !m.IsRead)
-                    })
-                    .OrderByDescending(g => g.LastMessage.CreatedAt)
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync();
+                var otherUserId = message.SenderId == userId ? message.ReceiverId : message.SenderId;
+                var otherUser = message.SenderId == userId ? message.Receiver : message.Sender;
 
-                var result = new List<ConversationDto>();
-
-                // 批量获取用户信息
-                var otherUserIds = conversations.Select(c => c.OtherUserId).ToList();
-                var users = await _context.Users
-                    .Where(u => otherUserIds.Contains(u.Id))
-                    .ToDictionaryAsync(u => u.Id, u => u);
-
-                foreach (var conv in conversations)
+                if (!conversationMap.ContainsKey(otherUserId))
                 {
-                    if (users.TryGetValue(conv.OtherUserId, out var otherUser))
+                    conversationMap[otherUserId] = new ConversationDto
                     {
-                        result.Add(new ConversationDto
-                        {
-                            UserId = conv.OtherUserId,
-                            UserName = otherUser.Username,
-                            LastMessage = conv.LastMessage.Content,
-                            LastMessageTime = conv.LastMessage.CreatedAt,
-                            UnreadCount = conv.UnreadCount
-                        });
-                    }
+                        UserId = otherUserId,
+                        UserName = otherUser.Username,
+                        LastMessage = message.Content,
+                        LastMessageTime = message.CreatedAt,
+                        UnreadCount = 0
+                    };
                 }
 
-                return result;
+                // 统计未读消息数
+                if (message.ReceiverId == userId && !message.IsRead)
+                {
+                    conversationMap[otherUserId].UnreadCount++;
+                }
             }
-            catch (Exception ex)
-            {
-                // 记录错误并返回空列表
-                Console.WriteLine($"Error in GetConversationsAsync: {ex.Message}");
-                return new List<ConversationDto>();
-            }
+
+            var result = conversationMap.Values
+                .OrderByDescending(c => c.LastMessageTime)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return result;
         }
 
         public async Task<bool> MarkAsReadAsync(int messageId, int userId)

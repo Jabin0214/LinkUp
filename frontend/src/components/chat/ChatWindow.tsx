@@ -35,7 +35,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
                 return;
             }
 
-            // 只处理来自其他用户的消息，且不是自己发送的消息
+            // 只处理来自当前对话用户的消息，避免处理自己发送的消息（因为已经在发送时添加了）
             if (signalRMessage.senderId === selectedUserId && signalRMessage.senderId !== user?.id) {
                 console.log('Received SignalR message:', signalRMessage.content);
 
@@ -73,13 +73,21 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
     });
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'end'
+            });
+        }
     };
 
     useEffect(() => {
         // 只有在有新消息时才滚动到底部
         if (messages.length > 0) {
-            scrollToBottom();
+            // 使用setTimeout确保DOM更新完成后再滚动
+            setTimeout(() => {
+                scrollToBottom();
+            }, 50);
         }
     }, [messages]);
 
@@ -95,6 +103,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
             setIsInitialized(false);
         };
     }, [selectedUserId]);
+
+    // 确保在初始化完成后滚动到底部
+    useEffect(() => {
+        if (isInitialized && messages.length > 0) {
+            setTimeout(() => {
+                scrollToBottom();
+            }, 200);
+        }
+    }, [isInitialized]);
 
     const loadMessages = async () => {
         if (!isUserAuthenticated()) {
@@ -117,6 +134,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
             );
             setMessages(sortedMessages);
             setIsInitialized(true);
+
+            // 延迟滚动到底部，确保DOM更新后再滚动
+            setTimeout(() => {
+                scrollToBottom();
+            }, 100);
 
             // 标记未读消息为已读
             const unreadMessages = conversationMessages.filter(
@@ -170,6 +192,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
 
         // 立即添加到消息列表（新消息在底部）
         setMessages(prev => [...prev, tempMessage]);
+        
+        // 确保滚动到底部
+        setTimeout(() => {
+            scrollToBottom();
+        }, 100);
 
         try {
             setSending(true);

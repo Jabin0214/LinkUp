@@ -248,10 +248,10 @@ const MyProjectsPage: React.FC = () => {
                             <Col
                                 xs={24}
                                 sm={12}
-                                md={12}
+                                md={8}
                                 lg={8}
                                 xl={6}
-                                xxl={4}
+                                xxl={6}
                                 key={project.id}
                             >
                                 <ProjectCard

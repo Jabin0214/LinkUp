@@ -103,19 +103,41 @@ const ChatPage: React.FC = () => {
                             onClose={handleBackToConversations}
                         />
                     ) : (
-                        <div className="chat-welcome-screen">
-                            <div className="chat-welcome-content">
-                                <div className="chat-welcome-icon">
+                        <div style={{
+                            flex: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: 'var(--background-color)'
+                        }}>
+                            <div style={{
+                                textAlign: 'center',
+                                maxWidth: '400px',
+                                padding: '40px'
+                            }}>
+                                <div style={{
+                                    fontSize: '64px',
+                                    color: 'var(--text-color-secondary)',
+                                    marginBottom: '20px'
+                                }}>
                                     💬
                                 </div>
-                                <Title level={4} className="chat-welcome-title">
+                                <Title level={4} style={{
+                                    fontSize: '24px',
+                                    marginBottom: '12px',
+                                    color: 'var(--text-color)'
+                                }}>
                                     Welcome to Messages
                                 </Title>
-                                <Text className="chat-welcome-text">
+                                <Text style={{
+                                    fontSize: '16px',
+                                    color: 'var(--text-color-secondary)',
+                                    lineHeight: 1.5
+                                }}>
                                     Select a conversation to start chatting with your friends,
                                     or start a new chat from your friends list.
                                 </Text>
-                                <div className="chat-welcome-actions">
+                                <div style={{ marginTop: '24px' }}>
                                     <Button
                                         type="primary"
                                         icon={<UserOutlined />}

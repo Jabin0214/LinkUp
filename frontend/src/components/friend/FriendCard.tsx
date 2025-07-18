@@ -70,12 +70,6 @@ const FriendCard: React.FC<FriendCardProps> = ({
                 flexDirection: 'column',
                 minHeight: '120px'
             }}
-            bodyStyle={{
-                padding: '16px',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column'
-            }}
             className="friend-card"
             actions={[
                 <Tooltip title="View Profile" key="profile">

@@ -5,7 +5,6 @@ import { ConversationDto, getConversations } from '../../Services/MessageService
 import { getCurrentToken, isUserAuthenticated } from '../../utils/authUtils';
 import { useSignalR } from '../../hooks/useSignalR';
 import { useAppSelector } from '../../store/hooks';
-import { API_CONFIG } from '../../config/api';
 import HttpClient from '../../utils/httpClient';
 
 const { Text } = Typography;

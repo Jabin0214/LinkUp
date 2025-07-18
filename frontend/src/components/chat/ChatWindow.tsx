@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Card, Input, Button, List, Avatar, Typography, Space, message, Tooltip } from 'antd';
 import { SendOutlined, UserOutlined, CheckOutlined, LoadingOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { MessageDto, sendMessage, getConversation, markAsRead } from '../../Services/MessageService';
@@ -7,6 +7,14 @@ import { useAppSelector } from '../../store/hooks';
 import { useSignalR } from '../../hooks/useSignalR';
 
 const { Text } = Typography;
+
+// 常量配置
+const CHAT_CONFIG = {
+    DUPLICATE_CHECK_WINDOW: 5000, // 5秒内重复消息检查
+    SCROLL_DELAY: 100,             // 滚动延迟
+    INPUT_MAX_HEIGHT: 120,         // 输入框最大高度
+    MESSAGE_TIME_FORMAT: { hour: '2-digit' as const, minute: '2-digit' as const },
+} as const;
 
 interface ChatWindowProps {
     selectedUserId: number;
@@ -26,10 +34,61 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
     const [sending, setSending] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // 身份验证检查 Hook
+    const checkAuthentication = useCallback(() => {
+        if (!isUserAuthenticated()) {
+            message.error('Please login to view messages');
+            return null;
+        }
+
+        const validToken = getCurrentToken();
+        if (!validToken) {
+            message.error('Invalid authentication token');
+            return null;
+        }
+
+        return validToken;
+    }, []);
+
+    // 优化的滚动函数
+    const scrollToBottom = useCallback(() => {
+        if (scrollTimeoutRef.current) {
+            clearTimeout(scrollTimeoutRef.current);
+        }
+
+        scrollTimeoutRef.current = setTimeout(() => {
+            if (messagesEndRef.current) {
+                messagesEndRef.current.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'end'
+                });
+            }
+        }, CHAT_CONFIG.SCROLL_DELAY);
+    }, []);
+
+    // 清理计时器
+    useEffect(() => {
+        return () => {
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+        };
+    }, []);
+
+    // 消息重复检查
+    const isDuplicateMessage = useCallback((newMsg: any, existingMessages: MessageWithStatus[]) => {
+        return existingMessages.some(msg =>
+            msg.content === newMsg.content &&
+            msg.senderId === newMsg.senderId &&
+            Math.abs(new Date(msg.createdAt).getTime() - new Date().getTime()) < CHAT_CONFIG.DUPLICATE_CHECK_WINDOW
+        );
+    }, []);
 
     // SignalR连接
     const { sendMessage: sendSignalRMessage } = useSignalR({
-        onReceiveMessage: (signalRMessage) => {
+        onReceiveMessage: useCallback((signalRMessage: any) => {
             // 只在初始化后处理消息，避免页面刷新时的混乱
             if (!isInitialized) {
                 return;
@@ -37,22 +96,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
 
             // 只处理来自当前对话用户的消息，避免处理自己发送的消息（因为已经在发送时添加了）
             if (signalRMessage.senderId === selectedUserId && signalRMessage.senderId !== user?.id) {
-                console.log('Received SignalR message:', signalRMessage.content);
-
-                // 检查是否已经存在相同的消息（避免重复）
                 setMessages(prev => {
-                    const messageExists = prev.some(msg =>
-                        msg.content === signalRMessage.content &&
-                        msg.senderId === signalRMessage.senderId &&
-                        Math.abs(new Date(msg.createdAt).getTime() - new Date().getTime()) < 5000 // 5秒内的消息
-                    );
-
-                    if (messageExists) {
-                        console.log('Duplicate message detected, skipping:', signalRMessage.content);
+                    // 检查是否已经存在相同的消息（避免重复）
+                    if (isDuplicateMessage(signalRMessage, prev)) {
                         return prev;
                     }
-
-                    console.log('Adding new message from SignalR:', signalRMessage.content);
                     const newMessage: MessageDto = {
                         id: Date.now(), // 临时ID
                         senderId: signalRMessage.senderId,
@@ -66,31 +114,20 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
                     return [...prev, newMessage]; // 添加到末尾，新消息在底部
                 });
             }
-        },
-        onError: (error) => {
+        }, [isInitialized, selectedUserId, user?.id, selectedUserName, user?.username, isDuplicateMessage]),
+        onError: useCallback((error: string) => {
             console.error('SignalR error:', error);
-        }
+        }, [])
     });
 
-    const scrollToBottom = () => {
-        if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ 
-                behavior: 'smooth',
-                block: 'end'
-            });
-        }
-    };
-
+    // 消息变化时自动滚动
     useEffect(() => {
-        // 只有在有新消息时才滚动到底部
         if (messages.length > 0) {
-            // 使用setTimeout确保DOM更新完成后再滚动
-            setTimeout(() => {
-                scrollToBottom();
-            }, 50);
+            scrollToBottom();
         }
-    }, [messages]);
+    }, [messages, scrollToBottom]);
 
+    // 用户切换时重置状态
     useEffect(() => {
         if (selectedUserId) {
             setIsInitialized(false);
@@ -99,59 +136,47 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
         }
 
         return () => {
-            // 组件卸载时清理状态
             setIsInitialized(false);
         };
     }, [selectedUserId]);
 
-    // 确保在初始化完成后滚动到底部
+    // 初始化完成后滚动到底部
     useEffect(() => {
         if (isInitialized && messages.length > 0) {
-            setTimeout(() => {
-                scrollToBottom();
-            }, 200);
+            scrollToBottom();
         }
-    }, [isInitialized]);
+    }, [isInitialized, messages.length, scrollToBottom]);
 
     const loadMessages = async () => {
-        if (!isUserAuthenticated()) {
-            message.error('Please login to view messages');
-            return;
-        }
-
-        const validToken = getCurrentToken();
-        if (!validToken) {
-            message.error('Invalid authentication token');
-            return;
-        }
+        const token = checkAuthentication();
+        if (!token) return;
 
         try {
             setLoading(true);
-            const conversationMessages = await getConversation(validToken, selectedUserId);
+            const conversationMessages = await getConversation(token, selectedUserId);
+
             // 按时间排序，最新的消息在底部
             const sortedMessages = conversationMessages.sort((a, b) =>
                 new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
             );
+
             setMessages(sortedMessages);
             setIsInitialized(true);
-
-            // 延迟滚动到底部，确保DOM更新后再滚动
-            setTimeout(() => {
-                scrollToBottom();
-            }, 100);
 
             // 标记未读消息为已读
             const unreadMessages = conversationMessages.filter(
                 msg => !msg.isRead && msg.senderId === selectedUserId
             );
 
-            for (const msg of unreadMessages) {
-                try {
-                    await markAsRead(validToken, msg.id);
-                } catch (error) {
-                    console.error('Failed to mark message as read:', error);
-                }
-            }
+            // 批量标记为已读
+            const markReadPromises = unreadMessages.map(msg =>
+                markAsRead(token, msg.id).catch(error =>
+                    console.error('Failed to mark message as read:', error)
+                )
+            );
+
+            await Promise.allSettled(markReadPromises);
+
         } catch (error: any) {
             console.error('Failed to load messages:', error);
             message.error('Failed to load messages');
@@ -163,16 +188,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
     const handleSendMessage = async () => {
         if (!newMessage.trim() || sending) return;
 
-        if (!isUserAuthenticated()) {
-            message.error('Please login to send messages');
-            return;
-        }
-
-        const validToken = getCurrentToken();
-        if (!validToken) {
-            message.error('Invalid authentication token');
-            return;
-        }
+        const token = checkAuthentication();
+        if (!token) return;
 
         const messageContent = newMessage.trim();
         setNewMessage(''); // 立即清空输入框
@@ -192,23 +209,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
 
         // 立即添加到消息列表（新消息在底部）
         setMessages(prev => [...prev, tempMessage]);
-        
-        // 确保滚动到底部
-        setTimeout(() => {
-            scrollToBottom();
-        }, 100);
 
         try {
             setSending(true);
-            console.log('Sending message via API:', messageContent);
 
             // 只通过API保存到数据库，后端会自动通过SignalR广播
-            const sentMessage = await sendMessage(validToken, {
+            const sentMessage = await sendMessage(token, {
                 receiverId: selectedUserId,
                 content: messageContent
             });
-
-            console.log('Message sent successfully via API:', sentMessage);
 
             // 更新消息列表，用真实消息替换临时消息
             setMessages(prev => prev.map(msg =>
@@ -231,40 +240,93 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
         }
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
         setNewMessage(value);
 
         // 自动调整输入框高度
         const textarea = e.target;
         textarea.style.height = 'auto';
-        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-    };
+        textarea.style.height = Math.min(textarea.scrollHeight, CHAT_CONFIG.INPUT_MAX_HEIGHT) + 'px';
+    }, []);
 
-    const formatTime = (dateString: string) => {
+    const formatTime = useCallback((dateString: string) => {
         const date = new Date(dateString);
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    };
+        return date.toLocaleTimeString([], CHAT_CONFIG.MESSAGE_TIME_FORMAT);
+    }, []);
 
-    const isOwnMessage = (message: MessageDto) => {
+    const isOwnMessage = useCallback((message: MessageDto) => {
         return message.senderId === user?.id;
-    };
+    }, [user?.id]);
+
+    // 键盘事件处理
+    const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (!e.shiftKey && !sending && e.key === 'Enter') {
+            e.preventDefault();
+            handleSendMessage();
+        }
+    }, [sending, handleSendMessage]);
+
+    // Memoized 组件部分
+    const loadingSection = useMemo(() => (
+        <div style={{
+            textAlign: 'center',
+            padding: '40px 20px',
+            color: 'var(--text-color-secondary)'
+        }}>
+            <div style={{ marginBottom: '12px' }}>
+                <LoadingOutlined style={{ fontSize: '24px' }} />
+            </div>
+            <Text>Loading messages...</Text>
+        </div>
+    ), []);
+
+    const messagesSection = useMemo(() => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {messages.map((msg) => (
+                <div
+                    key={msg.id}
+                    style={{
+                        display: 'flex',
+                        justifyContent: isOwnMessage(msg) ? 'flex-end' : 'flex-start',
+                        width: '100%'
+                    }}
+                >
+                    <div
+                        className={`message-bubble ${isOwnMessage(msg) ? 'message-own' : 'message-other'}`}
+                    >
+                        <div style={{
+                            fontSize: '14px',
+                            lineHeight: '1.4',
+                            marginBottom: '4px'
+                        }}>
+                            {msg.content}
+                        </div>
+                        <div className="message-time">
+                            {formatTime(msg.createdAt)}
+                            {isOwnMessage(msg) && (
+                                <span style={{ fontSize: '10px' }}>
+                                    {msg.status === 'sending' && <LoadingOutlined />}
+                                    {msg.status === 'sent' && <CheckOutlined style={{ color: 'rgba(255,255,255,0.8)' }} />}
+                                    {msg.status === 'error' && <span style={{ color: '#ff4d4f' }}>!</span>}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            ))}
+            <div ref={messagesEndRef} />
+        </div>
+    ), [messages, isOwnMessage, formatTime]);
 
     return (
         <div className="chat-window-container">
             {/* Chat Header */}
             <div className="chat-header">
                 <div className="chat-header-user">
-                    <Avatar
-                        icon={<UserOutlined />}
-                        className="chat-header-avatar"
-                    />
                     <div className="chat-header-info">
                         <Text strong className="chat-header-name">
                             {selectedUserName}
-                        </Text>
-                        <Text className="chat-header-status">
-                            Online
                         </Text>
                     </div>
                 </div>
@@ -278,54 +340,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
 
             {/* Messages Area */}
             <div className="chat-messages">
-                {loading ? (
-                    <div style={{
-                        textAlign: 'center',
-                        padding: '40px 20px',
-                        color: 'var(--text-color-secondary)'
-                    }}>
-                        <div style={{ marginBottom: '12px' }}>
-                            <LoadingOutlined style={{ fontSize: '24px' }} />
-                        </div>
-                        <Text>Loading messages...</Text>
-                    </div>
-                ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {messages.map((msg) => (
-                            <div
-                                key={msg.id}
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: isOwnMessage(msg) ? 'flex-end' : 'flex-start',
-                                    width: '100%'
-                                }}
-                            >
-                                <div
-                                    className={`message-bubble ${isOwnMessage(msg) ? 'message-own' : 'message-other'}`}
-                                >
-                                    <div style={{
-                                        fontSize: '14px',
-                                        lineHeight: '1.4',
-                                        marginBottom: '4px'
-                                    }}>
-                                        {msg.content}
-                                    </div>
-                                    <div className="message-time">
-                                        {formatTime(msg.createdAt)}
-                                        {isOwnMessage(msg) && (
-                                            <span style={{ fontSize: '10px' }}>
-                                                {msg.status === 'sending' && <LoadingOutlined />}
-                                                {msg.status === 'sent' && <CheckOutlined style={{ color: 'rgba(255,255,255,0.8)' }} />}
-                                                {msg.status === 'error' && <span style={{ color: '#ff4d4f' }}>!</span>}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                        <div ref={messagesEndRef} />
-                    </div>
-                )}
+                {loading ? loadingSection : messagesSection}
             </div>
 
             {/* Input Area */}
@@ -338,18 +353,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
                         autoSize={{ minRows: 1, maxRows: 4 }}
                         className="chat-input"
                         disabled={sending}
-                        onPressEnter={(e) => {
-                            if (!e.shiftKey && !sending) {
-                                e.preventDefault();
-                                handleSendMessage();
-                            }
-                        }}
+                        onKeyDown={handleKeyPress}
                         style={{
                             padding: '8px 0',
                             lineHeight: '1.4',
                             fontSize: '14px',
                             minHeight: '24px',
-                            maxHeight: '120px',
+                            maxHeight: `${CHAT_CONFIG.INPUT_MAX_HEIGHT}px`,
                             overflowY: 'auto'
                         }}
                     />

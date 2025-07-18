@@ -47,7 +47,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onSwitchToRegiste
                 padding: '0 8px'
             }}>
                 <h2 style={{
-                    color: 'var(--text-color-secondary)',
+                    color: 'var(--text-color)',
                     marginBottom: 8,
                     fontSize: '1.75rem',
                     fontWeight: 600
@@ -144,7 +144,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onSwitchToRegiste
                             color: 'var(--primary-color)',
                             fontWeight: 500,
                             padding: 0,
-                            height: 'auto'
+                            height: 'auto',
+                            border: 'none',
+                            boxShadow: 'none'
                         }}
                     >
                         Don't have an account? Register now

@@ -281,7 +281,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onSwitch
                             color: 'var(--primary-color)',
                             fontWeight: 500,
                             padding: 0,
-                            height: 'auto'
+                            height: 'auto',
+                            border: 'none',
+                            boxShadow: 'none'
                         }}
                     >
                         Already have an account? Sign in

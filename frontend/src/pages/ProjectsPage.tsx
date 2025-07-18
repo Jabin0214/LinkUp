@@ -70,11 +70,11 @@ const ProjectsPage: React.FC = () => {
 
     // 优化的数据获取逻辑，避免重复请求
     useEffect(() => {
-        // 数据不新鲜或没有项目数据时请求
-        if (!isDataFresh || projects.length === 0) {
-            fetchProjects(searchQuery);
+        // 只在组件首次挂载时检查是否需要获取数据
+        if (!isDataFresh) {
+            fetchProjects();
         }
-    }, [fetchProjects, isDataFresh, projects.length, searchQuery]);
+    }, []); // 空依赖数组，只在组件挂载时执行一次
 
     const handleSearch = () => {
         const query = {
@@ -237,7 +237,7 @@ const ProjectsPage: React.FC = () => {
                             </Text>
                             <Select
                                 placeholder="All Categories"
-                                style={{ width: '100%'}}
+                                style={{ width: '100%' }}
                                 value={selectedCategory}
                                 onChange={setSelectedCategory}
                                 allowClear
@@ -410,15 +410,15 @@ const ProjectsPage: React.FC = () => {
                         {/* Projects Grid */}
                         <Row gutter={[isMobile ? 12 : 16, isMobile ? 12 : 16]}>
                             {projects.map(project => (
-                                <Col
-                                    xs={24}
-                                    sm={12}
-                                    md={12}
-                                    lg={8}
-                                    xl={6}
-                                    xxl={4}
-                                    key={project.id}
-                                >
+                                                            <Col
+                                xs={24}
+                                sm={12}
+                                md={8}
+                                lg={8}
+                                xl={6}
+                                xxl={6}
+                                key={project.id}
+                            >
                                     <ProjectCard
                                         project={project}
                                         onViewDetails={handleViewDetails}

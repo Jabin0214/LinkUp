@@ -268,11 +268,6 @@ backend/
 
 This project is licensed under the MIT License.
 
-## 👥 Authors
-
-- Your Name - Initial work
-
 ## 🙏 Acknowledgments
 
 - Microsoft Student Accelerator Program
-1q

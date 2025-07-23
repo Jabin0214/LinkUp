@@ -214,11 +214,11 @@ const ConversationList: React.FC<ConversationListProps> = ({
                                 className="conversation-modern-avatar"
                             />
                             <div className="conversation-modern-content">
-                                <div className="conversation-modern-header">
-                                    <span className="conversation-modern-username" style={{ color: 'var(--text-color)' }}>
+                                <div className="conversation-modern-header" style={{ display: 'flex', alignItems: 'center' }}>
+                                    <span className="conversation-modern-username" style={{ color: 'var(--text-color)', fontWeight: 500, fontSize: 16, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                                         {conversation.userName}
                                     </span>
-                                    <span className="conversation-modern-time" style={{ color: 'var(--text-color-secondary)' }}>
+                                    <span className="conversation-modern-time" style={{ color: 'var(--text-color-secondary)', fontSize: 13, marginLeft: 16, flexShrink: 0, textAlign: 'right', minWidth: 60 }}>
                                         {formatTime(conversation.lastMessageTime)}
                                     </span>
                                 </div>

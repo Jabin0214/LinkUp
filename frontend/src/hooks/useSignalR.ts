@@ -1,5 +1,18 @@
-import { useEffect, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { getCurrentToken, isUserAuthenticated } from '../utils/authUtils';
+
+// 添加日志工具函数
+const logDebug = (message: string, ...args: any[]) => {
+    if (process.env.NODE_ENV === 'development') {
+        console.debug(`[SignalR] ${message}`, ...args);
+    }
+};
+
+const logError = (message: string, error?: any) => {
+    if (process.env.NODE_ENV === 'development') {
+        console.error(`[SignalR] ${message}`, error);
+    }
+};
 
 interface SignalRMessage {
     senderId: number;
@@ -53,7 +66,7 @@ export const useSignalR = ({
                 connectionRef.current = globalConnection;
                 return;
             } catch (error) {
-                console.error('Failed to wait for existing connection:', error);
+                logError('Failed to wait for existing connection:', error);
             }
         }
 
@@ -66,12 +79,13 @@ export const useSignalR = ({
 
         try {
             // 动态导入SignalR客户端
-            const { HubConnectionBuilder, HttpTransportType } = await import('@microsoft/signalr');
+            const { HubConnectionBuilder, HttpTransportType, LogLevel } = await import('@microsoft/signalr');
 
             const connection = new HubConnectionBuilder()
-                .withUrl(`${(process.env.REACT_APP_API_URL || 'http://localhost:8080/api').replace('/api', '')}/chatHub?access_token=${token}`, {
+                .withUrl(`${(process.env.REACT_APP_API_URL || 'http://localhost:5006/api').replace('/api', '')}/chatHub?access_token=${token}`, {
                     transport: HttpTransportType.WebSockets
                 })
+                .configureLogging(process.env.NODE_ENV === 'development' ? LogLevel.Information : LogLevel.Error)
                 .withAutomaticReconnect()
                 .build();
 
@@ -87,26 +101,29 @@ export const useSignalR = ({
                             onReceiveMessage?.({ senderId, receiverId, content });
                         }
                     } catch (error) {
-                        console.error('Failed to parse token:', error);
+                        logError('Failed to parse token:', error);
                     }
                 }
             });
 
             connection.on('UserConnected', (userId: number) => {
+                logDebug('User connected:', userId);
                 onUserConnected?.(userId);
             });
 
             connection.on('UserDisconnected', (userId: number) => {
+                logDebug('User disconnected:', userId);
                 onUserDisconnected?.(userId);
             });
 
             connection.on('MessageRead', (messageId: number, userId: number) => {
+                logDebug('Message read:', { messageId, userId });
                 onMessageRead?.(messageId, userId);
             });
 
             connection.onclose((error) => {
-                console.log('SignalR connection closed:', error);
                 if (error) {
+                    logError('Connection closed with error:', error);
                     onError?.('Connection lost. Trying to reconnect...');
                 }
                 // 清理全局连接
@@ -122,9 +139,9 @@ export const useSignalR = ({
             globalConnection = connection;
             connectionRef.current = connection;
             globalConnectionPromise = null;
-            console.log('SignalR connected successfully');
+            logDebug('Connected successfully');
         } catch (error) {
-            console.error('Failed to connect to SignalR:', error);
+            logError('Failed to connect:', error);
             onError?.('Failed to connect to chat server');
             globalConnection = null;
             globalConnectionPromise = null;
@@ -155,7 +172,7 @@ export const useSignalR = ({
             try {
                 await connectionRef.current.invoke('SendMessage', receiverId, content);
             } catch (error) {
-                console.error('Failed to send message via SignalR:', error);
+                logError('Failed to send message:', error);
                 onError?.('Failed to send message');
             }
         }
@@ -166,7 +183,7 @@ export const useSignalR = ({
             try {
                 await connectionRef.current.invoke('MarkAsRead', messageId);
             } catch (error) {
-                console.error('Failed to mark message as read via SignalR:', error);
+                logError('Failed to mark message as read:', error);
             }
         }
     }, []);

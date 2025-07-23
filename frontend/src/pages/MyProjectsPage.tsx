@@ -111,12 +111,18 @@ const MyProjectsPage: React.FC = () => {
                     <Col xs={12} sm={12} md={6}>
                         <Statistic
                             title={
-                                <span style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                                <span style={{
+                                    fontSize: isMobile ? '12px' : '14px',
+                                    color: 'var(--text-color-secondary)'
+                                }}>
                                     Total Projects
                                 </span>
                             }
                             value={stats.total}
-                            valueStyle={{ fontSize: isMobile ? '20px' : '24px' }}
+                            valueStyle={{
+                                fontSize: isMobile ? '20px' : '24px',
+                                color: 'var(--text-color)'
+                            }}
                             prefix={<ProjectOutlined style={{
                                 color: 'var(--primary-color)',
                                 fontSize: isMobile ? '16px' : '20px'
@@ -126,12 +132,18 @@ const MyProjectsPage: React.FC = () => {
                     <Col xs={12} sm={12} md={6}>
                         <Statistic
                             title={
-                                <span style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                                <span style={{
+                                    fontSize: isMobile ? '12px' : '14px',
+                                    color: 'var(--text-color-secondary)'
+                                }}>
                                     Projects Owned
                                 </span>
                             }
                             value={stats.owned}
-                            valueStyle={{ fontSize: isMobile ? '20px' : '24px' }}
+                            valueStyle={{
+                                fontSize: isMobile ? '20px' : '24px',
+                                color: 'var(--text-color)'
+                            }}
                             prefix={<TrophyOutlined style={{
                                 color: 'var(--warning-color)',
                                 fontSize: isMobile ? '16px' : '20px'
@@ -141,12 +153,18 @@ const MyProjectsPage: React.FC = () => {
                     <Col xs={12} sm={12} md={6}>
                         <Statistic
                             title={
-                                <span style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                                <span style={{
+                                    fontSize: isMobile ? '12px' : '14px',
+                                    color: 'var(--text-color-secondary)'
+                                }}>
                                     Projects Joined
                                 </span>
                             }
                             value={stats.joined}
-                            valueStyle={{ fontSize: isMobile ? '20px' : '24px' }}
+                            valueStyle={{
+                                fontSize: isMobile ? '20px' : '24px',
+                                color: 'var(--text-color)'
+                            }}
                             prefix={<TeamOutlined style={{
                                 color: 'var(--success-color)',
                                 fontSize: isMobile ? '16px' : '20px'
@@ -156,12 +174,18 @@ const MyProjectsPage: React.FC = () => {
                     <Col xs={12} sm={12} md={6}>
                         <Statistic
                             title={
-                                <span style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                                <span style={{
+                                    fontSize: isMobile ? '12px' : '14px',
+                                    color: 'var(--text-color-secondary)'
+                                }}>
                                     Active Projects
                                 </span>
                             }
                             value={stats.recruiting + stats.inProgress}
-                            valueStyle={{ fontSize: isMobile ? '20px' : '24px' }}
+                            valueStyle={{
+                                fontSize: isMobile ? '20px' : '24px',
+                                color: 'var(--text-color)'
+                            }}
                             prefix={<ClockCircleOutlined style={{
                                 color: 'var(--error-color)',
                                 fontSize: isMobile ? '16px' : '20px'

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { List, Avatar, Typography, message, Button, Empty, Tooltip } from 'antd';
+import { List, Avatar, Typography, message, Button } from 'antd';
 import { UserOutlined, ReloadOutlined, BugOutlined } from '@ant-design/icons';
 import { ConversationDto, getConversations } from '../../Services/MessageService';
 import { getCurrentToken, isUserAuthenticated } from '../../utils/authUtils';
@@ -210,15 +210,15 @@ const ConversationList: React.FC<ConversationListProps> = ({
                             />
                             <div className="conversation-modern-content">
                                 <div className="conversation-modern-header">
-                                    <span className="conversation-modern-username">
+                                    <span className="conversation-modern-username" style={{ color: 'var(--text-color)' }}>
                                         {conversation.userName}
                                     </span>
-                                    <span className="conversation-modern-time">
+                                    <span className="conversation-modern-time" style={{ color: 'var(--text-color-secondary)' }}>
                                         {formatTime(conversation.lastMessageTime)}
                                     </span>
                                 </div>
                                 <div className="conversation-modern-footer">
-                                    <span className="conversation-modern-message">
+                                    <span className="conversation-modern-message" style={{ color: 'var(--text-color-secondary)' }}>
                                         {truncateMessage(conversation.lastMessage)}
                                     </span>
                                 </div>

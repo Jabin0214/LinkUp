@@ -1,38 +1,51 @@
-import React, { useEffect, useState } from 'react';
-import {
-    Button,
-    Input,
-    Select,
-    Row,
-    Col,
-    Typography,
-    Space,
-    Pagination,
-    Modal,
-    Spin,
-    Empty,
-    Divider,
-    Card,
-    Tag,
-    message,
-    Grid
-} from 'antd';
-import {
-    SearchOutlined,
-    PlusOutlined,
-    ClearOutlined,
-    RocketOutlined,
-    FolderOutlined,
-    StarOutlined
-} from '@ant-design/icons';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { Button, Spin, Grid, message } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { useProjectList } from '../hooks/useProject';
 import { useProjectErrorHandler } from '../hooks/useErrorHandler';
-import ProjectCard from '../components/common/ProjectCard';
-import { PROJECT_CATEGORIES, COMMON_SKILLS } from '../Services/ProjectService';
+import {
+    ProjectsHeader,
+    ProjectsSearch,
+    ProjectsList,
+    JoinProjectModal
+} from '../components/projects';
 
-const { Title, Paragraph, Text } = Typography;
-const { TextArea } = Input;
-const { Option } = Select;
+// 常量配置
+const PAGE_CONFIG = {
+    PAGE_SIZE: 10,
+    DEFAULT_STATUS: 'Recruiting' as const,
+} as const;
+
+// 样式常量
+const CONTAINER_STYLES = {
+    desktop: {
+        paddingTop: '24px',
+        paddingLeft: '24px',
+        paddingRight: '24px',
+        paddingBottom: '24px',
+        background: 'var(--body-background)',
+        minHeight: '100vh'
+    },
+    mobile: {
+        paddingTop: '16px',
+        paddingLeft: '16px',
+        paddingRight: '16px',
+        paddingBottom: '24px',
+        background: 'var(--body-background)',
+        minHeight: '100vh'
+    }
+} as const;
+
+const CREATE_BUTTON_STYLES = {
+    container: (isMobile: boolean) => ({
+        textAlign: 'center' as const,
+        marginBottom: '24px'
+    }),
+    button: (isMobile: boolean) => ({
+        width: isMobile ? '100%' : 'auto' as const,
+        maxWidth: isMobile ? '280px' : 'none'
+    })
+} as const;
 
 const ProjectsPage: React.FC = () => {
     const {
@@ -62,66 +75,100 @@ const ProjectsPage: React.FC = () => {
     // Local state for filters
     const [keyword, setKeyword] = useState(searchQuery.keyword || '');
     const [selectedCategory, setSelectedCategory] = useState(searchQuery.category || '');
-    const [selectedStatus, setSelectedStatus] = useState(searchQuery.status || 'Recruiting');
+    const [selectedStatus, setSelectedStatus] = useState(searchQuery.status || PAGE_CONFIG.DEFAULT_STATUS);
     const [selectedSkills, setSelectedSkills] = useState<string[]>(searchQuery.requiredSkills || []);
+
+    // Modal state
     const [joinMessage, setJoinMessage] = useState('');
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
 
-    // 优化的数据获取逻辑，避免重复请求
+    // 缓存样式对象
+    const containerStyle = useMemo(() =>
+        isMobile ? CONTAINER_STYLES.mobile : CONTAINER_STYLES.desktop,
+        [isMobile]
+    );
+
+    const createButtonContainerStyle = useMemo(() =>
+        CREATE_BUTTON_STYLES.container(isMobile),
+        [isMobile]
+    );
+
+    const createButtonStyle = useMemo(() =>
+        CREATE_BUTTON_STYLES.button(isMobile),
+        [isMobile]
+    );
+
+    // 优化的数据获取逻辑
     useEffect(() => {
-        // 只在组件首次挂载时检查是否需要获取数据
         if (!isDataFresh) {
             fetchProjects();
         }
-    }, []); // 空依赖数组，只在组件挂载时执行一次
+    }, [fetchProjects, isDataFresh]);
 
-    const handleSearch = () => {
+    // 缓存的事件处理函数
+    const handleSearch = useCallback(() => {
         const query = {
             keyword: keyword.trim() || undefined,
             category: selectedCategory || undefined,
             status: selectedStatus || undefined,
             requiredSkills: selectedSkills.length > 0 ? selectedSkills : undefined,
             page: 1,
-            pageSize: 10
+            pageSize: PAGE_CONFIG.PAGE_SIZE
         };
 
         updateSearchQuery(query);
         fetchProjects(query);
-    };
+    }, [keyword, selectedCategory, selectedStatus, selectedSkills, updateSearchQuery, fetchProjects]);
 
-    const handleClearFilters = () => {
+    const handleClearFilters = useCallback(() => {
         setKeyword('');
         setSelectedCategory('');
-        setSelectedStatus('Recruiting');
+        setSelectedStatus(PAGE_CONFIG.DEFAULT_STATUS);
         setSelectedSkills([]);
 
         const query = {
-            status: 'Recruiting',
+            status: PAGE_CONFIG.DEFAULT_STATUS,
             page: 1,
-            pageSize: 10
+            pageSize: PAGE_CONFIG.PAGE_SIZE
         };
 
         updateSearchQuery(query);
         fetchProjects(query);
-    };
+    }, [updateSearchQuery, fetchProjects]);
 
-    const handlePageChange = (page: number) => {
+    const handlePageChange = useCallback((page: number) => {
         const query = { ...searchQuery, page };
         updateSearchQuery(query);
         fetchProjects(query);
-    };
+    }, [searchQuery, updateSearchQuery, fetchProjects]);
 
-    const handleJoinProject = (projectId: number) => {
+    const handleJoinProject = useCallback((projectId: number) => {
         if (!user) {
             navigate('/login');
             return;
         }
         setSelectedProjectId(projectId);
         setShowJoinModal(true);
-    };
+    }, [user, navigate]);
 
-    const confirmJoinProject = async () => {
+    const handleViewDetails = useCallback((projectId: number) => {
+        navigate(`/dashboard/projects/${projectId}`);
+    }, [navigate]);
+
+    const handleCreateProject = useCallback(() => {
+        navigate('/dashboard/projects/create');
+    }, [navigate]);
+
+    const handleSkillToggle = useCallback((skill: string) => {
+        setSelectedSkills(prev =>
+            prev.includes(skill)
+                ? prev.filter(s => s !== skill)
+                : [...prev, skill]
+        );
+    }, []);
+
+    const confirmJoinProject = useCallback(async () => {
         if (selectedProjectId) {
             const result = await joinProjectAction({
                 id: selectedProjectId,
@@ -135,227 +182,42 @@ const ProjectsPage: React.FC = () => {
                 setSelectedProjectId(null);
             }
         }
-    };
+    }, [selectedProjectId, joinMessage, joinProjectAction]);
 
-    const handleSkillToggle = (skill: string) => {
-        setSelectedSkills(prev =>
-            prev.includes(skill)
-                ? prev.filter(s => s !== skill)
-                : [...prev, skill]
-        );
-    };
-
-    const handleViewDetails = (projectId: number) => {
-        navigate(`/dashboard/projects/${projectId}`);
-    };
+    const handleJoinModalCancel = useCallback(() => {
+        setShowJoinModal(false);
+        setJoinMessage('');
+        setSelectedProjectId(null);
+    }, []);
 
     return (
-        <div style={{
-            paddingTop: isMobile ? '16px' : '24px',
-            paddingLeft: isMobile ? '16px' : '24px',
-            paddingRight: isMobile ? '16px' : '24px',
-            paddingBottom: '24px',
-            background: 'var(--body-background)',
-            minHeight: '100vh'
-        }}>
+        <div style={containerStyle}>
             {/* Header */}
-            <div style={{
-                textAlign: 'center',
-                marginBottom: isMobile ? '24px' : '32px'
-            }}>
-                <Title
-                    level={isMobile ? 2 : 1}
-                    style={{
-                        marginBottom: isMobile ? '12px' : '16px',
-                        fontSize: isMobile ? '24px' : '32px',
-                        color: 'var(--primary-color)'
-                    }}
-                >
-                    <RocketOutlined style={{
-                        marginRight: isMobile ? '8px' : '12px',
-                        color: 'var(--primary-color)',
-                        fontSize: isMobile ? '20px' : '24px'
-                    }} />
-                    Discover Amazing Projects
-                </Title>
-                <Paragraph style={{
-                    fontSize: isMobile ? '14px' : '16px',
-                    color: 'var(--text-color-secondary)',
-                    maxWidth: isMobile ? '100%' : '600px',
-                    margin: '0 auto',
-                    padding: isMobile ? '0 8px' : '0'
-                }}>
-                    Find exciting collaborative projects and connect with like-minded partners to create something extraordinary
-                </Paragraph>
-            </div>
+            <ProjectsHeader isMobile={isMobile} />
 
             {/* Search and Filters */}
-            <Card
-                style={{
-                    marginBottom: '24px',
-                    borderRadius: isMobile ? '8px' : '12px'
-                }}
-            >
-                <Row gutter={[isMobile ? 12 : 16, isMobile ? 16 : 16]}>
-                    {/* 搜索框 */}
-                    <Col xs={24} sm={12} md={7} lg={6}>
-                        <div>
-                            <Text strong style={{
-                                display: 'block',
-                                marginBottom: '8px',
-                                fontSize: isMobile ? '13px' : '14px',
-                                color: 'var(--text-color-secondary)'
-                            }}>
-                                <SearchOutlined style={{ marginRight: '4px' }} />
-                                Search Projects
-                            </Text>
-                            <Input
-                                placeholder="Enter keywords..."
-                                value={keyword}
-                                onChange={(e) => setKeyword(e.target.value)}
-                                onPressEnter={handleSearch}
-                                allowClear
-                                size={isMobile ? 'middle' : 'middle'}
-                                style={{
-                                    color: 'var(--text-color-secondary)'
-                                }}
-                            />
-                        </div>
-                    </Col>
-
-                    {/* 分类 */}
-                    <Col xs={24} sm={12} md={5} lg={5}>
-                        <div>
-                            <Text strong style={{
-                                display: 'block',
-                                marginBottom: '8px',
-                                fontSize: isMobile ? '13px' : '14px',
-                                color: 'var(--text-color-secondary)'
-                            }}>
-                                <FolderOutlined style={{ marginRight: '4px' }} />
-                                Category
-                            </Text>
-                            <Select
-                                placeholder="All Categories"
-                                style={{ width: '100%' }}
-                                value={selectedCategory}
-                                onChange={setSelectedCategory}
-                                allowClear
-                                size={isMobile ? 'middle' : 'middle'}
-                            >
-                                {PROJECT_CATEGORIES.map(category => (
-                                    <Option key={category} value={category}>{category}</Option>
-                                ))}
-                            </Select>
-                        </div>
-                    </Col>
-
-                    {/* 状态 */}
-                    <Col xs={24} sm={12} md={5} lg={4}>
-                        <div>
-                            <Text strong style={{
-                                display: 'block',
-                                marginBottom: '8px',
-                                fontSize: isMobile ? '13px' : '14px',
-                                color: 'var(--text-color-secondary)'
-                            }}>
-                                <StarOutlined style={{ marginRight: '4px' }} />
-                                Status
-                            </Text>
-                            <Select
-                                placeholder="All Status"
-                                style={{ width: '100%' }}
-                                value={selectedStatus}
-                                onChange={setSelectedStatus}
-                                allowClear
-                                size={isMobile ? 'middle' : 'middle'}
-                            >
-                                <Option value="Recruiting">Recruiting</Option>
-                                <Option value="InProgress">In Progress</Option>
-                                <Option value="Completed">Completed</Option>
-                            </Select>
-                        </div>
-                    </Col>
-
-                    {/* 操作按钮 */}
-                    <Col xs={24} sm={12} md={7} lg={5}>
-                        <div style={{
-                            display: 'flex',
-                            gap: '8px',
-                            alignItems: 'flex-end',
-                            marginTop: isMobile ? '0' : '29px',
-                            justifyContent: isMobile ? 'stretch' : 'flex-start'
-                        }}>
-                            <Button
-                                type="primary"
-                                icon={<SearchOutlined />}
-                                onClick={handleSearch}
-                                size={isMobile ? 'middle' : 'middle'}
-                                style={{ flex: isMobile ? 1 : 'none' }}
-                            >
-                                {isMobile ? 'Search' : 'Search'}
-                            </Button>
-                            <Button
-                                icon={<ClearOutlined />}
-                                onClick={handleClearFilters}
-                                size={isMobile ? 'middle' : 'middle'}
-                                style={{ flex: isMobile ? 1 : 'none' }}
-                            >
-                                {isMobile ? 'Clear' : 'Clear'}
-                            </Button>
-                        </div>
-                    </Col>
-                </Row>
-
-                {/* Skills Filter */}
-                <Divider style={{ margin: isMobile ? '16px 0' : '24px 0' }} />
-                <div>
-                    <Text strong style={{
-                        display: 'block',
-                        marginBottom: isMobile ? '8px' : '12px',
-                        fontSize: isMobile ? '13px' : '14px',
-                        color: 'var(--text-color-secondary)'
-                    }}>
-                        Required Skills
-                    </Text>
-                    <div style={{
-                        maxHeight: isMobile ? '120px' : 'none',
-                        overflowY: isMobile ? 'auto' : 'visible'
-                    }}>
-                        <Space size={[0, 8]} wrap>
-                            {COMMON_SKILLS.map(skill => (
-                                <Tag.CheckableTag
-                                    key={skill}
-                                    checked={selectedSkills.includes(skill)}
-                                    onChange={() => handleSkillToggle(skill)}
-                                    style={{
-                                        fontSize: isMobile ? '12px' : '13px',
-                                        padding: isMobile ? '2px 8px' : '4px 12px',
-                                        color: 'var(--text-color-secondary)'
-                                    }}
-                                >
-                                    {skill}
-                                </Tag.CheckableTag>
-                            ))}
-                        </Space>
-                    </div>
-                </div>
-            </Card>
+            <ProjectsSearch
+                keyword={keyword}
+                selectedCategory={selectedCategory}
+                selectedStatus={selectedStatus}
+                selectedSkills={selectedSkills}
+                isMobile={isMobile}
+                onKeywordChange={setKeyword}
+                onCategoryChange={setSelectedCategory}
+                onStatusChange={setSelectedStatus}
+                onSkillToggle={handleSkillToggle}
+                onSearch={handleSearch}
+                onClear={handleClearFilters}
+            />
 
             {/* Create Project Button */}
-            <div style={{
-                textAlign: 'center',
-                marginBottom: '24px'
-            }}>
+            <div style={createButtonContainerStyle}>
                 <Button
                     type="primary"
                     size={isMobile ? 'middle' : 'large'}
                     icon={<PlusOutlined />}
-                    onClick={() => navigate('/dashboard/projects/create')}
-                    style={{
-                        width: isMobile ? '100%' : 'auto',
-                        maxWidth: isMobile ? '280px' : 'none'
-                    }}
+                    onClick={handleCreateProject}
+                    style={createButtonStyle}
                 >
                     {isMobile ? 'Create Project' : 'Create New Project'}
                 </Button>
@@ -363,119 +225,28 @@ const ProjectsPage: React.FC = () => {
 
             {/* Content */}
             <Spin spinning={loading}>
-                {projects.length === 0 && !loading ? (
-                    <Card style={{
-                        textAlign: 'center',
-                        borderRadius: isMobile ? '8px' : '12px'
-                    }}>
-                        <Empty
-                            image={Empty.PRESENTED_IMAGE_SIMPLE}
-                            description={
-                                <div style={{
-                                    textAlign: 'center',
-                                    padding: isMobile ? '0 16px' : '0'
-                                }}>
-                                    <Text style={{
-                                        fontSize: isMobile ? '14px' : '16px',
-                                        color: 'var(--text-color-secondary)'
-                                    }}>
-                                        No projects found
-                                    </Text>
-                                    <br />
-                                    <Text type="secondary" style={{
-                                        fontSize: isMobile ? '12px' : '14px'
-                                    }}>
-                                        Try adjusting your search filters or create a new project
-                                    </Text>
-                                </div>
-                            }
-                        >
-                            <Button
-                                type="primary"
-                                icon={<PlusOutlined />}
-                                onClick={() => navigate('/dashboard/projects/create')}
-                                style={{
-                                    marginTop: '16px',
-                                    width: isMobile ? '100%' : 'auto',
-                                    maxWidth: isMobile ? '200px' : 'none'
-                                }}
-                                size={isMobile ? 'middle' : 'middle'}
-                            >
-                                Create Your First Project
-                            </Button>
-                        </Empty>
-                    </Card>
-                ) : (
-                    <>
-                        {/* Projects Grid */}
-                        <Row gutter={[isMobile ? 12 : 16, isMobile ? 12 : 16]}>
-                            {projects.map(project => (
-                                                            <Col
-                                xs={24}
-                                sm={12}
-                                md={8}
-                                lg={8}
-                                xl={6}
-                                xxl={6}
-                                key={project.id}
-                            >
-                                    <ProjectCard
-                                        project={project}
-                                        onViewDetails={handleViewDetails}
-                                        onJoin={handleJoinProject}
-                                        isLoading={actionLoading}
-                                        showJoinButton={true}
-                                        showJoinedBadge={true}
-                                    />
-                                </Col>
-                            ))}
-                        </Row>
-
-                        {/* Pagination */}
-                        <div style={{
-                            textAlign: 'center',
-                            marginTop: isMobile ? '24px' : '32px'
-                        }}>
-                            <Pagination
-                                current={pagination.currentPage}
-                                total={pagination.totalCount}
-                                pageSize={10}
-                                onChange={handlePageChange}
-                                showSizeChanger={false}
-                                showQuickJumper={!isMobile}
-                                size={isMobile ? 'small' : 'default'}
-                                showTotal={(total, range) =>
-                                    isMobile
-                                        ? `${range[0]}-${range[1]}/${total}`
-                                        : `${range[0]}-${range[1]} of ${total} projects`
-                                }
-                                style={{
-                                    padding: isMobile ? '0 16px' : '0'
-                                }}
-                            />
-                        </div>
-                    </>
-                )}
+                <ProjectsList
+                    projects={projects}
+                    loading={loading}
+                    isMobile={isMobile}
+                    actionLoading={actionLoading}
+                    pagination={pagination}
+                    onViewDetails={handleViewDetails}
+                    onJoinProject={handleJoinProject}
+                    onPageChange={handlePageChange}
+                    onCreateProject={handleCreateProject}
+                />
             </Spin>
 
             {/* Join Project Modal */}
-            <Modal
-                title="Join Project"
+            <JoinProjectModal
                 open={showJoinModal}
+                loading={actionLoading}
+                joinMessage={joinMessage}
                 onOk={confirmJoinProject}
-                onCancel={() => setShowJoinModal(false)}
-                confirmLoading={actionLoading}
-            >
-                <div style={{ marginBottom: '16px' }}>
-                    <Text>Send a message to the project creator:</Text>
-                </div>
-                <TextArea
-                    rows={4}
-                    placeholder="Introduce yourself and explain why you want to join this project..."
-                    value={joinMessage}
-                    onChange={(e) => setJoinMessage(e.target.value)}
-                />
-            </Modal>
+                onCancel={handleJoinModalCancel}
+                onMessageChange={setJoinMessage}
+            />
         </div>
     );
 };

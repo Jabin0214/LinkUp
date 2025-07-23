@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Avatar, Space, Button, Tooltip, Badge, Dropdown } from 'antd';
+import { Card, Avatar, Button, Tooltip, Badge, Dropdown } from 'antd';
 import {
     UserOutlined,
     BankOutlined,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Card, Input, Button, List, Avatar, Typography, Space, message, Tooltip } from 'antd';
-import { SendOutlined, UserOutlined, CheckOutlined, LoadingOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import {  Input, Button, Typography, message } from 'antd';
+import { SendOutlined, CheckOutlined, LoadingOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { MessageDto, sendMessage, getConversation, markAsRead } from '../../Services/MessageService';
 import { getCurrentToken, isUserAuthenticated } from '../../utils/authUtils';
 import { useAppSelector } from '../../store/hooks';
@@ -325,7 +325,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
             <div className="chat-header">
                 <div className="chat-header-user">
                     <div className="chat-header-info">
-                        <Text strong className="chat-header-name">
+                        <Text strong className="chat-header-name" style={{ color: 'var(--text-color)' }}>
                             {selectedUserName}
                         </Text>
                     </div>
@@ -335,6 +335,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
                     icon={<ArrowLeftOutlined />}
                     onClick={onClose}
                     className="chat-header-back-btn"
+                    style={{ color: 'var(--text-color)' }}
                 />
             </div>
 

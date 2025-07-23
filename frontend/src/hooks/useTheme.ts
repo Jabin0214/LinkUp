@@ -26,7 +26,7 @@ export const useTheme = () => {
     // 立即初始化主题，防止闪白
     useEffect(() => {
         // 在React应用启动时立即应用主题
-        const storedMode = localStorage.getItem('theme-mode') || 'auto';
+        const storedMode = localStorage.getItem('themeMode') || 'light';  // 默认使用亮色主题
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
         let shouldBeDark = false;
@@ -41,6 +41,11 @@ export const useTheme = () => {
         // 立即应用主题，不等Redux
         const root = document.documentElement;
         root.setAttribute('data-theme', shouldBeDark ? 'dark' : 'light');
+
+        // 确保localStorage中有正确的主题设置
+        if (!localStorage.getItem('themeMode')) {
+            localStorage.setItem('themeMode', 'light');
+        }
 
         // 然后初始化Redux状态
         dispatch(initializeTheme());

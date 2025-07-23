@@ -119,8 +119,10 @@ const SkillBoardPage: React.FC = () => {
                     <Card
                         title={
                             <Space>
+                                <Text strong style={{ color: 'var(--text-color)' }}>
                                 <UserOutlined />
-                                Personal Introduction
+                                    Personal Introduction
+                                </Text>
                             </Space>
                         }
                         style={{ height: '100%' }}
@@ -161,23 +163,41 @@ const SkillBoardPage: React.FC = () => {
 
                 {/* 统计信息卡片 */}
                 <Col xs={24} lg={8}>
-                    <Card title="Statistics" style={{ height: '100%' }}>
+                    <Card title={
+                        <Text strong style={{ color: 'var(--text-color)' }}>
+                            Statistics
+                        </Text>
+                    } style={{ height: '100%' }}>
                         <div style={{ textAlign: 'center' }}>
                             <Row gutter={16}>
                                 <Col span={12}>
                                     <div style={{ padding: '16px' }}>
-                                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--primary-color)' }}>
+                                        <div style={{
+                                            fontSize: '24px',
+                                            fontWeight: 'bold',
+                                            color: 'var(--primary-color)',
+                                            marginBottom: '8px'
+                                        }}>
                                             {skillBoard?.skills.length || 0}
                                         </div>
-                                        <div style={{ color: 'var(--text-color-secondary)' }}>Skills</div>
+                                        <div style={{ color: 'var(--text-color-secondary)' }}>
+                                            Skills
+                                        </div>
                                     </div>
                                 </Col>
                                 <Col span={12}>
                                     <div style={{ padding: '16px' }}>
-                                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--success-color)' }}>
+                                        <div style={{
+                                            fontSize: '24px',
+                                            fontWeight: 'bold',
+                                            color: 'var(--success-color)',
+                                            marginBottom: '8px'
+                                        }}>
                                             {skillBoard?.links.length || 0}
                                         </div>
-                                        <div style={{ color: 'var(--text-color-secondary)' }}>Links</div>
+                                        <div style={{ color: 'var(--text-color-secondary)' }}>
+                                            Links
+                                        </div>
                                     </div>
                                 </Col>
                             </Row>
@@ -210,9 +230,11 @@ const SkillBoardPage: React.FC = () => {
                 <Col xs={24} lg={12}>
                     <Card
                         title={
-                            <Space>
-                                <CodeOutlined />
-                                Skills ({skillBoard?.skills.length || 0})
+                            <Space >
+                                <Text strong style={{ color: 'var(--text-color)' }}>
+                                    <CodeOutlined />
+                                    Skills ({skillBoard?.skills.length || 0})
+                                </Text>
                             </Space>
                         }
                         style={{ height: '100%' }}
@@ -256,8 +278,10 @@ const SkillBoardPage: React.FC = () => {
                     <Card
                         title={
                             <Space>
-                                <LinkOutlined />
-                                Links ({skillBoard?.links.length || 0})
+                                <Text strong style={{ color: 'var(--text-color)' }}>
+                                    <LinkOutlined />
+                                    Links ({skillBoard?.links.length || 0})
+                                </Text>
                             </Space>
                         }
                         style={{ height: '100%' }}

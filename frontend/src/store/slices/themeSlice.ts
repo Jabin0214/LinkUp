@@ -9,12 +9,12 @@ const getSystemThemePreference = (): boolean => {
 
 // 从localStorage获取保存的主题模式
 const getStoredThemeMode = (): ThemeMode => {
-    if (typeof window === 'undefined') return 'auto';
+    if (typeof window === 'undefined') return 'light';
     const stored = localStorage.getItem('themeMode');
     if (stored === 'light' || stored === 'dark' || stored === 'auto') {
         return stored;
     }
-    return 'auto';
+    return 'light';  // 默认使用亮色主题
 };
 
 // 计算实际的主题模式

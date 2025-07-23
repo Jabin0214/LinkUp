@@ -89,28 +89,23 @@ const ConversationList: React.FC<ConversationListProps> = ({
         }
     });
 
-    useEffect(() => {
-        setIsInitialized(false);
-        setConversations([]);
-        loadConversations();
-        return () => setIsInitialized(false);
-    }, []);
-
+    // 加载对话列表
     const loadConversations = useCallback(async () => {
         if (!isUserAuthenticated()) {
             message.error('Please login to view conversations');
             return;
         }
-        const validToken = getCurrentToken();
-        if (!validToken) {
+
+        const token = getCurrentToken();
+        if (!token) {
             message.error('Invalid authentication token');
             return;
         }
+
         try {
             setLoading(true);
             setError(null);
-            const conversationsData = await getConversations(validToken);
-            console.log('Loaded conversations:', conversationsData);
+            const conversationsData = await getConversations(token);
             setConversations(conversationsData);
             setIsInitialized(true);
         } catch (error: any) {
@@ -122,6 +117,16 @@ const ConversationList: React.FC<ConversationListProps> = ({
             setLoading(false);
         }
     }, []);
+
+    // 初始化加载
+    useEffect(() => {
+        if (isUserAuthenticated()) {
+            setIsInitialized(false);
+            setConversations([]);
+            loadConversations();
+        }
+        return () => setIsInitialized(false);
+    }, [loadConversations, isUserAuthenticated]);
 
     const loadDebugInfo = useCallback(async () => {
         const validToken = getCurrentToken();

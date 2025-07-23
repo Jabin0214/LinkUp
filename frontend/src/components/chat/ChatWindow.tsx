@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import {  Input, Button, Typography, message } from 'antd';
-import { SendOutlined, CheckOutlined, LoadingOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Input, Button, Typography, message } from 'antd';
+import { SendOutlined, ArrowLeftOutlined, LoadingOutlined, CheckOutlined } from '@ant-design/icons';
 import { MessageDto, sendMessage, getConversation, markAsRead } from '../../Services/MessageService';
 import { getCurrentToken, isUserAuthenticated } from '../../utils/authUtils';
 import { useAppSelector } from '../../store/hooks';
@@ -26,7 +26,11 @@ interface MessageWithStatus extends MessageDto {
     status?: 'sending' | 'sent' | 'error';
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserName, onClose }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({
+    selectedUserId,
+    selectedUserName,
+    onClose
+}) => {
     const { user } = useAppSelector(state => state.auth);
     const [messages, setMessages] = useState<MessageWithStatus[]>([]);
     const [newMessage, setNewMessage] = useState('');
@@ -36,20 +40,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // 身份验证检查 Hook
+    // 检查身份验证
     const checkAuthentication = useCallback(() => {
         if (!isUserAuthenticated()) {
-            message.error('Please login to view messages');
+            message.error('Please login to send messages');
             return null;
         }
-
-        const validToken = getCurrentToken();
-        if (!validToken) {
+        const token = getCurrentToken();
+        if (!token) {
             message.error('Invalid authentication token');
             return null;
         }
-
-        return validToken;
+        return token;
     }, []);
 
     // 优化的滚动函数
@@ -87,7 +89,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
     }, []);
 
     // SignalR连接
-    const { sendMessage: sendSignalRMessage } = useSignalR({
+    const {
+        connection,
+        sendMessage: sendSignalRMessage,  // eslint-disable-line @typescript-eslint/no-unused-vars
+        markAsRead: markMessageAsRead
+    } = useSignalR({
         onReceiveMessage: useCallback((signalRMessage: any) => {
             // 只在初始化后处理消息，避免页面刷新时的混乱
             if (!isInitialized) {
@@ -127,74 +133,55 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
         }
     }, [messages, scrollToBottom]);
 
-    // 用户切换时重置状态
+    // 加载消息历史
+    const loadMessages = useCallback(async () => {
+        if (!selectedUserId) return;
+
+        const token = checkAuthentication();
+        if (!token) return;
+
+        setLoading(true);
+        try {
+            const response = await getConversation(token, selectedUserId);
+            setMessages(response || []);
+            setIsInitialized(true);
+        } catch (error) {
+            console.error('Failed to load messages:', error);
+            message.error('Failed to load messages');
+        } finally {
+            setLoading(false);
+        }
+    }, [selectedUserId, checkAuthentication]);
+
+    // 用户切换时重置状态并加载消息
     useEffect(() => {
         if (selectedUserId) {
             setIsInitialized(false);
             setMessages([]);
             loadMessages();
         }
-
         return () => {
             setIsInitialized(false);
         };
-    }, [selectedUserId]);
+    }, [selectedUserId, loadMessages]);
 
     // 初始化完成后滚动到底部
     useEffect(() => {
         if (isInitialized && messages.length > 0) {
             scrollToBottom();
         }
-    }, [isInitialized, messages.length, scrollToBottom]);
+    }, [isInitialized, messages, scrollToBottom]);
 
-    const loadMessages = async () => {
-        const token = checkAuthentication();
-        if (!token) return;
-
-        try {
-            setLoading(true);
-            const conversationMessages = await getConversation(token, selectedUserId);
-
-            // 按时间排序，最新的消息在底部
-            const sortedMessages = conversationMessages.sort((a, b) =>
-                new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-            );
-
-            setMessages(sortedMessages);
-            setIsInitialized(true);
-
-            // 标记未读消息为已读
-            const unreadMessages = conversationMessages.filter(
-                msg => !msg.isRead && msg.senderId === selectedUserId
-            );
-
-            // 批量标记为已读
-            const markReadPromises = unreadMessages.map(msg =>
-                markAsRead(token, msg.id).catch(error =>
-                    console.error('Failed to mark message as read:', error)
-                )
-            );
-
-            await Promise.allSettled(markReadPromises);
-
-        } catch (error: any) {
-            console.error('Failed to load messages:', error);
-            message.error('Failed to load messages');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleSendMessage = async () => {
+    // 处理消息发送
+    const handleSendMessage = useCallback(async () => {
         if (!newMessage.trim() || sending) return;
 
         const token = checkAuthentication();
         if (!token) return;
 
         const messageContent = newMessage.trim();
-        setNewMessage(''); // 立即清空输入框
+        setNewMessage('');
 
-        // 创建临时消息用于UI显示
         const tempMessage: MessageWithStatus = {
             id: Date.now(),
             senderId: user?.id || 0,
@@ -207,38 +194,25 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
             status: 'sending'
         };
 
-        // 立即添加到消息列表（新消息在底部）
         setMessages(prev => [...prev, tempMessage]);
 
         try {
             setSending(true);
-
-            // 只通过API保存到数据库，后端会自动通过SignalR广播
-            const sentMessage = await sendMessage(token, {
-                receiverId: selectedUserId,
-                content: messageContent
-            });
-
-            // 更新消息列表，用真实消息替换临时消息
+            await sendMessage(token, { receiverId: selectedUserId, content: messageContent });
             setMessages(prev => prev.map(msg =>
-                msg.id === tempMessage.id ? { ...sentMessage, status: 'sent' } : msg
+                msg.id === tempMessage.id ? { ...msg, status: 'sent' } : msg
             ));
-
         } catch (error: any) {
             console.error('Failed to send message:', error);
             message.error(error.message || 'Failed to send message');
-
-            // 发送失败时恢复输入框内容
             setNewMessage(messageContent);
-
-            // 标记临时消息为错误状态
             setMessages(prev => prev.map(msg =>
                 msg.id === tempMessage.id ? { ...msg, status: 'error' } : msg
             ));
         } finally {
             setSending(false);
         }
-    };
+    }, [newMessage, sending, checkAuthentication, selectedUserId, selectedUserName, user]);
 
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
@@ -268,20 +242,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
     }, [sending, handleSendMessage]);
 
     // Memoized 组件部分
-    const loadingSection = useMemo(() => (
+    const renderLoadingSection = () => (
         <div style={{
             textAlign: 'center',
-            padding: '40px 20px',
+            padding: '20px',
             color: 'var(--text-color-secondary)'
         }}>
-            <div style={{ marginBottom: '12px' }}>
-                <LoadingOutlined style={{ fontSize: '24px' }} />
-            </div>
-            <Text>Loading messages...</Text>
+            <LoadingOutlined style={{ fontSize: 24, marginBottom: 16 }} />
+            <div>Loading messages...</div>
         </div>
-    ), []);
+    );
 
-    const messagesSection = useMemo(() => (
+    const renderMessagesSection = () => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {messages.map((msg) => (
                 <div
@@ -317,7 +289,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
             ))}
             <div ref={messagesEndRef} />
         </div>
-    ), [messages, isOwnMessage, formatTime]);
+    );
 
     return (
         <div className="chat-window-container">
@@ -341,7 +313,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedUserId, selectedUserNam
 
             {/* Messages Area */}
             <div className="chat-messages">
-                {loading ? loadingSection : messagesSection}
+                {loading ? renderLoadingSection() : renderMessagesSection()}
             </div>
 
             {/* Input Area */}

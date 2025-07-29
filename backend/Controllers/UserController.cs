@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Data;
 using Models;
+using System.Net.Http;
+using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace Controllers
 {
@@ -13,10 +16,12 @@ namespace Controllers
     public class UserController : ControllerBase
     {
         private readonly UserContext _context;
+        private readonly ILogger<UserController> _logger;
 
-        public UserController(UserContext context)
+        public UserController(UserContext context, ILogger<UserController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         private int GetCurrentUserId()
@@ -206,29 +211,113 @@ namespace Controllers
 
         // GET: api/User/universities
         [HttpGet("universities")]
-        public async Task<ActionResult<object>> GetUniversities([FromQuery] string? search = null)
+        [AllowAnonymous]
+        public async Task<ActionResult<object>> GetUniversities([FromQuery] string? searchTerm = null)
         {
-            var query = _context.Users
-                .Where(u => u.IsActive && !string.IsNullOrEmpty(u.university))
-                .AsQueryable();
-
-            if (!string.IsNullOrEmpty(search))
+            try
             {
-                query = query.Where(u => u.university!.Contains(search));
-            }
+                // 首先尝试从用户表获取数据
+                var query = _context.Users
+                    .Where(u => u.IsActive && !string.IsNullOrEmpty(u.university))
+                    .AsQueryable();
 
-            var universities = await query
-                .GroupBy(u => u.university)
-                .Select(g => new
+                if (!string.IsNullOrEmpty(searchTerm))
                 {
-                    name = g.Key,
-                    userCount = g.Count()
-                })
-                .OrderByDescending(u => u.userCount)
-                .Take(50)
-                .ToListAsync();
+                    query = query.Where(u => u.university!.Contains(searchTerm));
+                }
 
-            return Ok(universities);
+                var localUniversities = await query
+                    .GroupBy(u => u.university)
+                    .Select(g => new UniversityResponse
+                    {
+                        Name = g.Key!,
+                        Country = "Unknown",
+                        WebPages = new string[] { }
+                    })
+                    .Take(10)
+                    .ToListAsync();
+
+                // 如果本地数据库有结果，直接返回
+                if (localUniversities.Any())
+                {
+                    return Ok(new { success = true, data = localUniversities });
+                }
+
+                // 如果本地没有数据，尝试从第三方API获取
+                using var httpClient = new HttpClient();
+                httpClient.Timeout = TimeSpan.FromSeconds(5); // 设置较短的超时时间
+
+                var apiUrl = "http://universities.hipolabs.com/search";
+
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    apiUrl += $"?name={Uri.EscapeDataString(searchTerm)}";
+                }
+
+                var response = await httpClient.GetAsync(apiUrl);
+
+                _logger.LogInformation($"Third-party API response status: {response.StatusCode}");
+
+                response.EnsureSuccessStatusCode();
+
+                var content = await response.Content.ReadAsStringAsync();
+                var universities = JsonSerializer.Deserialize<List<UniversityResponse>>(content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (universities == null || !universities.Any())
+                {
+                    // 如果API没有返回数据，返回一些常见大学
+                    return Ok(new
+                    {
+                        success = true,
+                        data = new List<UniversityResponse>
+                        {
+                            new() { Name = "Harvard University", Country = "United States" },
+                            new() { Name = "Stanford University", Country = "United States" },
+                            new() { Name = "Massachusetts Institute of Technology", Country = "United States" },
+                            new() { Name = "University of Oxford", Country = "United Kingdom" },
+                            new() { Name = "University of Cambridge", Country = "United Kingdom" },
+                            new() { Name = "Peking University", Country = "China" },
+                            new() { Name = "Tsinghua University", Country = "China" }
+                        }
+                        .Where(u => string.IsNullOrEmpty(searchTerm) ||
+                                  u.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                        .ToList()
+                    });
+                }
+
+                return Ok(new { success = true, data = universities });
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError($"HTTP Request Error: {ex.Message}");
+                // 返回常见大学列表作为后备
+                return Ok(new
+                {
+                    success = true,
+                    data = new List<UniversityResponse>
+                    {
+                        new() { Name = "Harvard University", Country = "United States" },
+                        new() { Name = "Stanford University", Country = "United States" },
+                        new() { Name = "Massachusetts Institute of Technology", Country = "United States" },
+                        new() { Name = "University of Oxford", Country = "United Kingdom" },
+                        new() { Name = "University of Cambridge", Country = "United Kingdom" },
+                        new() { Name = "Peking University", Country = "China" },
+                        new() { Name = "Tsinghua University", Country = "China" }
+                    }
+                    .Where(u => string.IsNullOrEmpty(searchTerm) ||
+                              u.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                    .ToList()
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Unexpected Error in GetUniversities: {ex.Message}");
+                _logger.LogError($"Stack Trace: {ex.StackTrace}");
+                return StatusCode(500, new { success = false, message = "Failed to fetch universities" });
+            }
         }
 
         // GET: api/User/search

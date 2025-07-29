@@ -144,10 +144,24 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials();
+            if (builder.Environment.IsDevelopment())
+            {
+                policy.SetIsOriginAllowed(_ => true) // 在开发环境允许所有来源
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            }
+            else
+            {
+                policy.WithOrigins(
+                        "http://localhost:3000",
+                        "https://black-glacier-0c8ab8c00.1.azurestaticapps.net",
+                        "https://linkup-frontend.azurestaticapps.net"
+                    )
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            }
         });
 });
 

@@ -1,4 +1,5 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import { API_CONFIG, buildApiUrl } from '../config/api';
 
 export interface University {
     label: string;
@@ -7,33 +8,38 @@ export interface University {
     website?: string;
 }
 
-// 使用公开的大学API
-const UNIVERSITY_API_URL = 'http://universities.hipolabs.com/search';
-
 export async function searchUniversities(searchTerm: string): Promise<University[]> {
     if (!searchTerm || searchTerm.length < 2) {
         return [];
     }
 
     try {
-        const response = await axios.get(UNIVERSITY_API_URL, {
+        const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.USER.UNIVERSITIES), {
             params: {
-                name: searchTerm,
-                limit: 20 // 限制返回结果数量
+                searchTerm
             },
-            timeout: 5000 // 5秒超时
+            timeout: 10000 // 10秒超时
         });
 
-        const universities = response.data || [];
+        if (response.data?.success && Array.isArray(response.data.data)) {
+            return response.data.data.map((uni: any) => ({
+                label: `${uni.name} (${uni.country})`,
+                value: uni.name,
+                country: uni.country,
+                website: uni.webPages?.[0]
+            }));
+        }
 
-        return universities.map((uni: any) => ({
-            label: `${uni.name} (${uni.country})`,
-            value: uni.name,
-            country: uni.country,
-            website: uni.web_pages?.[0]
-        }));
+        console.warn('Unexpected API response format:', response.data);
+        return [];
     } catch (error) {
-        console.error('Failed to fetch universities:', error);
+        const axiosError = error as AxiosError;
+        console.error('Failed to fetch universities:', {
+            status: axiosError.response?.status,
+            statusText: axiosError.response?.statusText,
+            data: axiosError.response?.data,
+            error: axiosError.message
+        });
 
         // 如果API失败，返回一些常见大学作为备选
         const fallbackUniversities = [

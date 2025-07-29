@@ -81,9 +81,17 @@ export const useSignalR = ({
             // 动态导入SignalR客户端
             const { HubConnectionBuilder, HttpTransportType, LogLevel } = await import('@microsoft/signalr');
 
+            // 根据环境确定基础URL
+            const baseUrl = process.env.NODE_ENV === 'production'
+                ? 'https://linkup-backend-app.azurewebsites.net'
+                : 'http://localhost:5006';
+
+            logDebug('Connecting to SignalR hub at:', baseUrl);
+
             const connection = new HubConnectionBuilder()
-                .withUrl(`${(process.env.REACT_APP_API_URL || 'http://localhost:5006/api').replace('/api', '')}/chatHub?access_token=${token}`, {
-                    transport: HttpTransportType.WebSockets
+                .withUrl(`${baseUrl}/chatHub`, {
+                    transport: HttpTransportType.WebSockets,
+                    accessTokenFactory: () => token
                 })
                 .configureLogging(process.env.NODE_ENV === 'development' ? LogLevel.Information : LogLevel.Error)
                 .withAutomaticReconnect()

@@ -154,10 +154,54 @@ LinkUp is a modern web application designed to facilitate networking among stude
    ```
 
 ### Docker Setup
+
+#### Prerequisites
+- Docker Desktop installed and running
+- Azure CLI installed (for cloud deployment)
+- Azure account with active subscription
+
+#### Local Development with Docker
 1. Build and run using Docker Compose:
    ```bash
    docker-compose up --build
    ```
+
+#### Cloud Deployment (Azure)
+1. Login to Azure and Container Registry:
+   ```bash
+   # Login to Azure CLI
+   az login
+
+   # Login to Azure Container Registry
+   az acr login --name linkupregistry
+   ```
+
+2. Deploy Backend:
+   ```bash
+   # Navigate to backend directory
+   cd backend
+
+   # Run deployment script
+   ./deploy.sh
+   ```
+
+   The deploy.sh script will:
+   - Build multi-architecture Docker image (AMD64/ARM64)
+   - Push to Azure Container Registry
+   - Restart Azure Web App
+
+3. Access Points:
+   - API: https://linkup-backend-app.azurewebsites.net
+   - Swagger Documentation: https://linkup-backend-app.azurewebsites.net/swagger
+
+#### Important Notes
+- Using Azure App Service Free Tier (F1):
+  - Auto-sleeps after 60 minutes of inactivity
+  - Shared compute resources
+  - Limited compute hours per day
+  - No custom domain support
+- Cold start may take a few seconds
+- For production use, consider upgrading to Basic (B1) tier or higher
 
 ## 🌐 API Endpoints
 
